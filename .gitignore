@@ -11,3 +11,4 @@ next-env.d.ts
 e2e/artifacts/
 test-results/
 .DS_Store
+shots/
