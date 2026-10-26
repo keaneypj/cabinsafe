@@ -24,7 +24,7 @@ import type {
 import { uid } from "@/lib/format";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 3;
+const SCHEMA_VERSION = 4;
 
 export type Result<T = undefined> = { ok: true; value?: T } | { ok: false; error: string };
 

@@ -30,7 +30,7 @@ export const PA_ID = "crew-pa";
 export const FEATURED_FLIGHT_ID = "flt-csi101";
 
 export const CREW: CrewMember[] = [
-  { id: LEAD_ID, name: "Morgan Reyes", initials: "MR", role: "lead", title: "Lead Cabin Attendant", employment: "staff", phoneMasked: "+1 ••• ••• 0142", qualifications: ["Cabin safety program lead", "First aid & AED (current)", "Allergen control", "Security awareness"] },
+  { id: LEAD_ID, name: "Kate Keaney", initials: "KK", role: "lead", title: "Lead Cabin Attendant", employment: "staff", phoneMasked: "+1 ••• ••• 0142", qualifications: ["Cabin safety program lead", "First aid & AED (current)", "Allergen control", "Security awareness"] },
   { id: CA_CLAIRE, name: "Claire Dubois", initials: "CD", role: "contract_ca", title: "Contract Cabin Attendant", employment: "contract", phoneMasked: "+33 •• •• •• 18", qualifications: ["G-type cabin experience", "First aid & AED (current)", "French / English"] },
   { id: CA_SAM, name: "Sam Whitaker", initials: "SW", role: "contract_ca", title: "Contract Cabin Attendant", employment: "contract", phoneMasked: "+1 ••• ••• 7730", qualifications: ["First aid & AED (current)", "Food safety level 3"] },
   { id: PIC_ID, name: "Capt. Daniel Hart", initials: "DH", role: "pilot", title: "Captain · Pilot in Command", employment: "staff", phoneMasked: "+1 ••• ••• 2201", qualifications: ["PIC authority"] },

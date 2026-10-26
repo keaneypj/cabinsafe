@@ -163,4 +163,4 @@ CLI alternative: `npm i -g vercel && vercel --prod`.
 
 ### Customising for the candidate
 
-The Lead Cabin Attendant is the fictional **Morgan Reyes** (`src/data/seed.ts`, `CREW`). Change `name` and `initials` to personalise the demo, then use **Reset Demo**.
+The Lead Cabin Attendant is **Kate Keaney** (`src/data/seed.ts`, `CREW`). Change `name` and `initials` to personalise the demo, then use **Reset Demo**.
