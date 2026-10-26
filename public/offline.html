@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#101D2B" />
+<title>Offline · CabinSafe</title>
+<style>
+  body{margin:0;min-height:100dvh;display:grid;place-items:center;background:#101d2b;color:#f7f5f0;font:16px/1.5 -apple-system,system-ui,"Segoe UI",sans-serif;padding:24px;box-sizing:border-box}
+  main{max-width:24rem;text-align:center}
+  h1{font:600 1.8rem Georgia,serif;margin:16px 0 8px;color:#d7bd8c}
+  p{color:#b9c5d2;font-size:.95rem}
+  button{margin-top:16px;min-height:44px;padding:0 20px;border:0;border-radius:12px;background:#d7bd8c;color:#101d2b;font-weight:600;font-size:1rem}
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" width="72" height="72" alt="" />
+  <h1>You're offline</h1>
+  <p>CabinSafe couldn't reach the network and this page isn't stored on your device yet. Pages you've already opened remain available offline with demonstration data stored on this device.</p>
+  <p>Live weather, advisories and AI features require a connection and are never shown from stale caches.</p>
+  <button onclick="location.reload()">Try again</button>
+</main>
+</body>
+</html>
