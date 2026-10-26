@@ -31,6 +31,7 @@ export const CATEGORY_LABELS: Record<ChecklistCategory, string> = {
   postflight_discrepancy: "Postflight Discrepancies",
   restock: "Restocking & Follow-up",
   coordination: "Coordination",
+  preboarding: "Pre-Boarding Checks",
 };
 
 export const PREFLIGHT_ORDER: ChecklistCategory[] = [
@@ -45,6 +46,7 @@ export const PREFLIGHT_ORDER: ChecklistCategory[] = [
   "security",
   "crew_briefing",
   "coordination",
+  "preboarding",
 ];
 
 export const POSTFLIGHT_ORDER: ChecklistCategory[] = ["postflight_discrepancy", "restock"];
@@ -77,6 +79,15 @@ export const CHECKLIST_TEMPLATE: ChecklistTemplateItem[] = [
   // Crew briefing
   { key: "crw-brief", title: "Crew safety briefing with flight crew", detail: "Present the cabin safety briefing to the PIC and SIC. Record items requiring pilot coordination.", category: "crew_briefing", phase: "preflight", priority: "critical", requiresSignOff: true, dueOffsetHours: 1.5, coordinateWith: ["pilot"], defaultAssignee: "lead" },
   { key: "crw-ack", title: "Cabin attendant briefing acknowledgement", detail: "Assigned cabin attendant acknowledges the briefing and their responsibilities.", category: "crew_briefing", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 1.25, documentRef: "CSI-HND-005", defaultAssignee: "attendant" },
+  // Pre-boarding — the cabin attendant's final checks before passengers board (due 45 min before departure)
+  { key: "pb-walk", title: "Final cabin walk-through — seats, belts, stowage, aisles clear", detail: "Walk all five zones: seats upright and positioned, belts laid out, overhead and credenza stowage latched, aisles and exits unobstructed.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-OPS-001", defaultAssignee: "attendant" },
+  { key: "pb-seals", title: "Visual check of emergency equipment seals at each station", detail: "Confirm seals and indicators are intact on the equipment visible at each station. Report any change immediately as a discrepancy.", category: "preboarding", phase: "preflight", priority: "critical", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-OPS-001", defaultAssignee: "attendant" },
+  { key: "pb-galley", title: "Galley secured for boarding — hot liquids, inserts, latches", detail: "Hot liquids stowed or attended, inserts latched, knives and glassware secured before passengers move through the forward cabin.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
+  { key: "pb-lav", title: "Lavatories checked, stocked and ready", detail: "Forward, suite and aft lavatories cleaned, stocked and checked for loose items.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
+  { key: "pb-welcome", title: "Welcome service prepared per documented preferences", detail: "Prepare welcome service from passenger preference records only; confirm allergen-safe items are segregated.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-CAT-003", defaultAssignee: "attendant" },
+  { key: "pb-climate", title: "Cabin temperature, lighting and ambience set for boarding", detail: "Set cabin temperature, lighting and audio for boarding as documented.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
+  { key: "pb-confid", title: "Confidential materials and crew items secured", detail: "Manifest and briefing papers stowed; only aliases visible; crew bags stowed.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-SEC-007", defaultAssignee: "attendant" },
+  { key: "pb-sequence", title: "Boarding sequence and airstair confirmed with flight crew and security", detail: "Confirm boarding order, assistance timing and airstair/door readiness with the PIC and security lead.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.5, coordinateWith: ["pilot", "security"], defaultAssignee: "attendant" },
   // Postflight
   { key: "pf-log", title: "Record cabin discrepancies", detail: "Record any cabin, galley or equipment discrepancies observed during the flight.", category: "postflight_discrepancy", phase: "postflight", priority: "high", requiresSignOff: false, dueOffsetHours: 1, documentRef: "CSI-OPS-001", defaultAssignee: "lead" },
   { key: "pf-used", title: "Report emergency or medical equipment used or opened", detail: "Any opened seal or used item is recorded as a discrepancy for replacement.", category: "postflight_discrepancy", phase: "postflight", priority: "critical", requiresSignOff: true, dueOffsetHours: 1, defaultAssignee: "lead" },

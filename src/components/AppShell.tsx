@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { Ellipsis, House, LayoutGrid, PlaneTakeoff, Sparkles, WifiOff } from "lucide-react";
+import { ClipboardCheck, Ellipsis, House, LayoutGrid, PlaneTakeoff, Sparkles, WifiOff } from "lucide-react";
 import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
@@ -15,9 +15,10 @@ import { Skeleton, Toaster } from "./ui";
 const NAV = [
   { href: "/", label: "Home", icon: House, match: (p: string) => p === "/" },
   { href: "/flights", label: "Flights", icon: PlaneTakeoff, match: (p: string) => p.startsWith("/flights") },
+  { href: "/preboard", label: "Boarding", icon: ClipboardCheck, match: (p: string) => p.startsWith("/preboard") },
   { href: "/cabin", label: "Cabin", icon: LayoutGrid, match: (p: string) => p.startsWith("/cabin") },
   { href: "/copilot", label: "Copilot", icon: Sparkles, match: (p: string) => p.startsWith("/copilot") },
-  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/flights", "/cabin", "/copilot"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
+  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/flights", "/preboard", "/cabin", "/copilot"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
 ];
 
 function useOnline(): boolean {
@@ -104,12 +105,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom navigation */}
       <nav aria-label="Primary" className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t hairline bg-midnight-900/92 backdrop-blur-xl no-print" style={{ paddingBottom: "var(--safe-bottom)" }}>
-        <ul className="grid grid-cols-5 h-[var(--nav-h)]">
+        <ul className="grid grid-cols-6 h-[var(--nav-h)]">
           {NAV.map((n) => {
             const active = n.match(pathname);
             return (
               <li key={n.href}>
-                <Link href={n.href} aria-current={active ? "page" : undefined} className={cx("relative flex h-full flex-col items-center justify-center gap-1 text-[0.6875rem] transition-colors", active ? "text-gold" : "text-slate-400 hover:text-ivory")} data-testid={`nav-${n.label.toLowerCase()}`}>
+                <Link href={n.href} aria-current={active ? "page" : undefined} className={cx("relative flex h-full flex-col items-center justify-center gap-1 text-[0.625rem] min-[400px]:text-[0.6875rem] transition-colors", active ? "text-gold" : "text-slate-400 hover:text-ivory")} data-testid={`nav-${n.label.toLowerCase()}`}>
                   {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-gold" aria-hidden />}
                   <n.icon className="size-[1.375rem]" strokeWidth={active ? 2.1 : 1.7} aria-hidden />
                   <span className={active ? "font-semibold" : ""}>{n.label}</span>

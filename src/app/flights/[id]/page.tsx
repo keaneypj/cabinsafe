@@ -6,6 +6,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import { CloudLightning, FileText, Handshake, Pencil, Plus, Shield, UserMinus, Users } from "lucide-react";
 import { ComponentBreakdown, FlightTimes, ReadinessPanel, ReadinessPill, RouteLine } from "@/components/flight";
 import { AddPassengerSheet, PassengerRow } from "@/components/passengers";
+import { PreboardCard } from "@/components/PreboardCard";
 import { TaskRow, TaskSheet } from "@/components/tasks";
 import { Avatar, Badge, Button, Card, Chip, ConfirmDialog, EmptyState, Field, LinkButton, Notice, Segmented, SectionHeader, Sheet, report } from "@/components/ui";
 import { CATEGORY_LABELS, POSTFLIGHT_ORDER, PREFLIGHT_ORDER } from "@/domain/checklists";
@@ -106,6 +107,7 @@ function FlightDetail() {
           ) : (
             <Notice tone="info">This flight is complete. Review postflight items in the Checklist tab.</Notice>
           )}
+          {flight.status !== "completed" && <PreboardCard flight={flight} />}
           <div className="grid grid-cols-2 gap-3">
             <Link href={`/intel?flight=${flight.id}`} className="card p-4 hover:border-gold/30">
               <CloudLightning className="size-5 text-gold" />

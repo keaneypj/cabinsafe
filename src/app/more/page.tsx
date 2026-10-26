@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookOpen, ChevronRight, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
+import { BookOpen, ChevronRight, ClipboardCheck, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
 import { DemoIntroSheet } from "@/components/DemoCoach";
 import { RoleSheet } from "@/components/RoleSwitcher";
 import { ConfirmDialog, PageTitle, toast } from "@/components/ui";
@@ -23,6 +23,7 @@ export default function MorePage() {
     {
       title: "Operations",
       items: [
+        { href: "/preboard", icon: ClipboardCheck, label: "Pre-Boarding Checklist", sub: "Cabin attendant's final checks and crew inputs" },
         { href: "/intel", icon: CloudLightning, label: "Risk Intelligence", sub: "Weather, security, disaster and health advisories" },
         { href: "/passengers", icon: Users, label: "Passenger Profiles", sub: "Accommodations and rules-based preparation" },
         { href: "/more/discrepancies", icon: CircleAlert, label: "Discrepancies", sub: "Postflight and inspection findings", badge: openDisc },

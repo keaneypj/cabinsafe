@@ -13,7 +13,8 @@ import {
   STATUS_LABEL,
   type FlightContext,
 } from "./context";
-import { PIC_CAVEAT, effectiveEquipmentStatus } from "./readiness";
+import { computePreboarding, PREBOARD_CAVEAT } from "./preboarding";
+import { PIC_CAVEAT, effectiveEquipmentStatus, isOpenTask } from "./readiness";
 import { citationLabel, retrieve, type Passage } from "./retrieval";
 
 export const NO_SOURCE_MESSAGE = "Approved aircraft-specific documentation is required to answer this question.";
@@ -21,6 +22,7 @@ export const NO_SOURCE_MESSAGE = "Approved aircraft-specific documentation is re
 export type CopilotKind =
   | "briefing"
   | "handover"
+  | "preboarding"
   | "incomplete"
   | "equipment"
   | "passengers"
@@ -46,6 +48,7 @@ export const SUGGESTED_PROMPTS = [
   "Summarize relevant advisories",
   "How do we control peanut cross-contact?",
   "Prepare a crew handover summary",
+  "What's left before boarding?",
   "Where is the AED and is it inspected?",
   "What is the evacuation procedure?",
 ];
@@ -98,6 +101,8 @@ export function answer(question: string, ctx: FlightContext): CopilotAnswer {
   }
 
   if (/handover|hand-over|hand over|shift change/i.test(q)) return handoverSummary(ctx);
+
+  if (/pre-?board\w*|before boarding|boarding check|ready (for|to) board/i.test(q)) return preboardSummary(ctx);
 
   if (/\b(aed|defib\w*|extinguisher|first[- ]aid|medical kit|kit|flashlight|torch|oxygen|pbe|equipment|discrepanc\w*|inspect\w*|defect\w*)\b/i.test(q)) {
     return equipmentSummary(q, ctx);
@@ -240,6 +245,27 @@ function advisorySummary(ctx: FlightContext): CopilotAnswer {
   return { kind: "advisories", markdown: lines.join("\n"), citations: passages, records: ["advisories"] };
 }
 
+function preboardSummary(ctx: FlightContext): CopilotAnswer {
+  const v = computePreboarding({ ...ctx, inputs: ctx.crewInputs ?? [], signoffs: ctx.preboardSignoffs ?? [] });
+  const lines = [
+    `**Pre-boarding — ${ctx.flight.callsign}** · boarding ${fmtUtc(v.boardingAt)} (${fmtRelative(v.boardingAt, ctx.nowMs)})`,
+    `- Progress: **${v.progress.pct}%** (${v.progress.done}/${v.progress.total} checks and acknowledgements)`,
+    v.signoff ? `- ✓ Confirmed by ${crewName(ctx, v.signoff.byId)} at ${fmtUtc(v.signoff.at)}` : `- Not yet confirmed${v.signoffBlockers.length ? `: ${v.signoffBlockers.join("; ")}` : " — ready for the cabin attendant's confirmation"}`,
+    "",
+    `**Crew inputs awaiting acknowledgement (${v.pendingAcks.length}):**`,
+    ...(v.pendingAcks.length ? v.pendingAcks.map((i) => `- ${crewName(ctx, i.fromId)} (${i.priority}): ${i.text}`) : ["- None"]),
+    "",
+    `**Needs attention (${v.attention.length}):**`,
+    ...(v.attention.length ? v.attention.slice(0, 10).map((a) => `- ${a.label}${a.detail ? ` — ${a.detail}` : ""}`) : ["- None"]),
+    "",
+    `**Open pre-boarding checks (${v.checks.filter(isOpenTask).length}):**`,
+    ...v.checks.filter(isOpenTask).map((t) => `- ${t.title}`),
+    "",
+    `_${PREBOARD_CAVEAT}_`,
+  ];
+  return { kind: "preboarding", markdown: lines.join("\n"), citations: retrieve("preflight inspection standard readiness status pilot in command", 1, 0), records: ["tasks", "inputs"] };
+}
+
 export function handoverSummary(ctx: FlightContext): CopilotAnswer {
   const open = openTasks(ctx);
   const r = readinessOf(ctx);
@@ -280,6 +306,7 @@ export function contextDigest(ctx: FlightContext): string {
     passengers: manifestOf(ctx).map((p) => ({ alias: p.alias, relationship: p.relationship, accommodations: p.accommodations.map((a) => a.summary), dietary: p.dietary, ...(medical && p.restrictedMedical ? { restrictedMedical: p.restrictedMedical } : {}) })),
     advisories: relevantAdvisories(ctx).map((a) => ({ title: a.title, origin: a.origin, severity: a.severity, category: a.category, cabinRelevance: a.cabinRelevance, source: a.source, acknowledged: a.acknowledged })),
     liveMetar: ctx.liveWeather?.map((m) => m.raw) ?? [],
+    crewInputs: (ctx.crewInputs ?? []).filter((i) => i.flightId === ctx.flight.id).map((i) => ({ from: crewName(ctx, i.fromId), role: i.fromRole, priority: i.priority, text: i.text, acknowledged: i.acks.length > 0 })),
     role: ctx.role,
     medicalAccess: medical,
   };

@@ -15,6 +15,8 @@ On the home screen, tap **Experience CabinSafe** and keep "Start from the origin
 | **5 · AI Briefing** | Tap **Generate Flight Safety Briefing**. Scroll the ten sections; try **Copy** or **Export**. Optionally ask: *"What is the evacuation procedure?"* | The briefing is built from live records with document citations. The Copilot refuses to invent aircraft procedures: "Approved aircraft-specific documentation is required…" |
 | **6 · Crew Handover** | As Lead CA, assign an open item to Sam Whitaker. Tap **Switch to Sam's demo view**, tick each acknowledgement and **Accept handover**. | Accountability: the task moves to Sam's queue, the acceptance is time-stamped, and the audit trail records every step. |
 
+**Bonus — Pre-Boarding (Boarding tab):** switch to Sam Whitaker with Demo Role Preview and open **Boarding**. Acknowledge the inputs from Kate (Lead CA), Captain Hart and the Principal's PA, tick the eight pre-boarding checks, then **Confirm pre-boarding complete**. If a critical blocker remains (for example, the AED inspection), sign-off stays locked until it is resolved. As the PA or a pilot, use **Send** to add a new instruction for the cabin attendant.
+
 Finish on **Audit history** to see every action you took, each with actor, role and timestamp.
 
 ### Good to know

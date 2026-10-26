@@ -215,7 +215,8 @@ export type ChecklistCategory =
   | "crew_briefing"
   | "postflight_discrepancy"
   | "restock"
-  | "coordination";
+  | "coordination"
+  | "preboarding";
 
 export interface TaskEvent {
   at: ISODate;
@@ -359,7 +360,10 @@ export type AuditAction =
   | "handover.acknowledge"
   | "handover.accept"
   | "briefing.generate"
-  | "demo.reset";
+  | "demo.reset"
+  | "input.create"
+  | "input.acknowledge"
+  | "preboard.signoff";
 
 export interface AuditEvent {
   id: string;
@@ -424,4 +428,32 @@ export interface BriefingDoc {
   generatedById: string;
   markdown: string;
   citations: string[];
+}
+
+// ───────────── Pre-boarding ─────────────
+
+export type CrewInputCategory = "instruction" | "passenger" | "timing" | "catering" | "safety";
+
+/** A specific pre-boarding input to the cabin attendant from the Lead CA, flight crew or the Principal's PA. */
+export interface CrewInput {
+  id: string;
+  flightId: string;
+  fromId: string;
+  fromRole: RoleKey;
+  category: CrewInputCategory;
+  priority: "critical" | "important" | "normal";
+  text: string;
+  requiresAck: boolean;
+  createdAt: ISODate;
+  acks: { byId: string; at: ISODate }[];
+}
+
+/** Cabin attendant's confirmation that pre-boarding preparation is complete. Not a boarding or departure authorization. */
+export interface PreboardSignoff {
+  id: string;
+  flightId: string;
+  byId: string;
+  at: ISODate;
+  openItemsAtSignoff: number;
+  note?: string;
 }

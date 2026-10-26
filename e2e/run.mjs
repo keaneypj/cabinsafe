@@ -219,10 +219,42 @@ await step("Restricted medical details hidden in contract attendant role", async
   assert(!(await page.content()).includes("COPD"), "COPD visible to contract attendant");
 });
 
+await step("Pre-boarding: PA sends an input to the cabin attendant", async () => {
+  await go("/");
+  await tid("role-chip").click();
+  await tid("role-crew-pa").click();
+  await go("/preboard?flight=flt-csi101");
+  await tid("input-compose").click();
+  await tid("input-text").fill("Principal requests the window blinds in Zone 1 half-closed at boarding.");
+  await tid("input-send").click();
+  await page.getByText("Input sent to the cabin attendant").waitFor();
+  await tid("crew-inputs").getByText("window blinds in Zone 1").waitFor();
+});
+
+await step("Pre-boarding: cabin attendant acknowledges inputs, completes checks and confirms", async () => {
+  await tid("role-chip").click();
+  await tid("role-crew-ca-sam").click();
+  await go("/preboard");
+  await tid("preboard-summary").waitFor();
+  assert(!(await tid("preboard-confirm").isEnabled()), "sign-off should be disabled before checks are done");
+  for (let i = 0; i < 20 && (await page.locator('[data-testid^="ack-input-"]').count()) > 0; i++) await page.locator('[data-testid^="ack-input-"]').first().click();
+  for (let i = 0; i < 20 && (await page.locator('[data-testid^="pb-check-"][aria-pressed="false"]').count()) > 0; i++) {
+    await page.locator('[data-testid^="pb-check-"][aria-pressed="false"]').first().click();
+    await page.waitForTimeout(80);
+  }
+  await page.waitForFunction(() => document.querySelector('[data-testid="preboard-pct"]')?.textContent === "100%");
+  await page.screenshot({ path: `${OUT}preboard-ready.png` });
+  await tid("preboard-confirm").click();
+  await page.getByRole("button", { name: "Confirm and sign" }).click();
+  await tid("preboard-signed").waitFor();
+  await go("/");
+  assert((await tid("preboard-card").innerText()).includes("Pre-boarding confirmed"), "home card not updated");
+});
+
 await step("12. Review the audit trail", async () => {
   await go("/audit");
   const txt = await tid("audit-list").innerText();
-  for (const s of ["Handover accepted", "AED-01 inspection passed", "Acknowledged SIMULATED advisory", "Rule-generated", "Created flight CSI104"]) assert(txt.includes(s), `audit missing: ${s}`);
+  for (const s of ["Pre-boarding preparation confirmed", "Acknowledged pre-boarding input", "Handover accepted", "AED-01 inspection passed", "Acknowledged SIMULATED advisory", "Rule-generated", "Created flight CSI104"]) assert(txt.includes(s), `audit missing: ${s}`);
 });
 
 await step("13. Reset the demonstration", async () => {
@@ -275,7 +307,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
 });
 
 await step("15. Mobile layout: no horizontal overflow on any screen", async () => {
-  for (const p of ["/", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/intel", "/copilot", "/more", "/passengers", "/passengers/pax-orion", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
+  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/intel", "/copilot", "/more", "/passengers", "/passengers/pax-orion", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
     await go(p);
     await noHorizontalOverflow(p);
   }

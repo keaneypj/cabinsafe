@@ -23,17 +23,20 @@ export type Permission =
   | "handover.accept"
   | "audit.view"
   | "briefing.generate"
-  | "demo.reset";
+  | "demo.reset"
+  | "input.create"
+  | "preboard.signoff";
 
 const MATRIX: Record<RoleKey, Permission[]> = {
   lead: [
     "medical.view", "restricted.view", "passenger.edit", "flight.edit", "task.assign", "task.update.any", "task.update.own",
     "task.review", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "audit.view", "briefing.generate", "demo.reset",
+    "input.create", "preboard.signoff",
   ],
-  contract_ca: ["task.update.own", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "briefing.generate", "demo.reset"],
-  pilot: ["advisory.ack", "briefing.generate", "audit.view", "demo.reset"],
+  contract_ca: ["task.update.own", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "briefing.generate", "demo.reset", "preboard.signoff"],
+  pilot: ["advisory.ack", "briefing.generate", "audit.view", "demo.reset", "input.create"],
   security: ["advisory.ack", "task.update.own", "demo.reset"],
-  assistant: ["task.update.own", "demo.reset"],
+  assistant: ["task.update.own", "demo.reset", "input.create"],
 };
 
 export const ROLE_LABELS: Record<RoleKey, string> = {

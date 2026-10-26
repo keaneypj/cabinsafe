@@ -1,6 +1,6 @@
 import { can } from "./permissions";
 import { advisoriesForFlight, computeReadiness, effectiveEquipmentStatus, isAcked, isOpenTask, type ReadinessResult } from "./readiness";
-import type { Advisory, AdvisoryAck, CrewMember, Discrepancy, Equipment, Flight, Handover, Passenger, RoleKey, Task } from "./types";
+import type { Advisory, AdvisoryAck, CrewInput, CrewMember, Discrepancy, Equipment, Flight, Handover, Passenger, PreboardSignoff, RoleKey, Task } from "./types";
 
 /** Everything the briefing generator and Copilot are allowed to see. */
 export interface FlightContext {
@@ -15,6 +15,8 @@ export interface FlightContext {
   handovers: Handover[];
   role: RoleKey;
   nowMs: number;
+  crewInputs?: CrewInput[];
+  preboardSignoffs?: PreboardSignoff[];
   liveWeather?: { station: string; raw: string; observedAt?: string }[];
   liveTafs?: { station: string; raw: string; validFrom?: string; validTo?: string }[];
 }

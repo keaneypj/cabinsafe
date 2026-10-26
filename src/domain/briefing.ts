@@ -134,7 +134,9 @@ export function generateBriefing(ctx: FlightContext): { markdown: string; citati
   for (const t of coord) L.push(`- **${t.coordinateWith!.filter((c) => c !== "assistant").map((c) => (c === "pilot" ? "PIC" : "Security")).join(" + ")}:** ${t.title}`);
   for (const b of r.blockers) L.push(`- **PIC:** ${b.label} (report per CSI-OPS-001 §4)`);
   for (const a of advs.filter((x) => x.severity === "warning" || x.severity === "critical")) L.push(`- **${a.category === "weather" ? "PIC" : "Security"}:** ${a.origin === "simulated" ? "[SIMULATED] " : ""}${a.title}`);
-  if (!coord.length && !r.blockers.length) L.push("- No open coordination items recorded.");
+  const inputs = (ctx.crewInputs ?? []).filter((i) => i.flightId === f.id);
+  for (const i of inputs) L.push(`- **Input from ${crewName(ctx, i.fromId)}** (${i.priority}${i.requiresAck ? (i.acks.length ? ", acknowledged" : ", **awaiting acknowledgement**") : ""}): ${i.text}`);
+  if (!coord.length && !r.blockers.length && !inputs.length) L.push("- No open coordination items recorded.");
   L.push("");
 
   // 9. References

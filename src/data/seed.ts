@@ -2,6 +2,7 @@ import { buildChecklist, checklistTaskId } from "@/domain/checklists";
 import { generateTasksForPassenger } from "@/domain/rules";
 import type {
   Advisory,
+  CrewInput,
   AuditEvent,
   CrewMember,
   Discrepancy,
@@ -141,6 +142,7 @@ export interface SeedState {
   audit: AuditEvent[];
   passengers: Passenger[];
   crew: CrewMember[];
+  crewInputs: CrewInput[];
 }
 
 function history(now: number, intervalDays: number, count: number, byIds: string[], checks: string[]): InspectionRecord[] {
@@ -361,7 +363,32 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     { id: "aud-9", at: iso(now - 3 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "handover.create", entity: "handover", entityId: "hnd-001", flightId: FEATURED_FLIGHT_ID, summary: "Handover submitted: Claire Dubois → Sam Whitaker (CSI101)" },
   ].sort((a, b) => b.at.localeCompare(a.at)) as AuditEvent[];
 
+  // ── Pre-boarding inputs to the cabin attendant ──
+  const crewInputs: CrewInput[] = [
+    {
+      id: "inp-lead-1", flightId: FEATURED_FLIGHT_ID, fromId: LEAD_ID, fromRole: "lead", category: "catering", priority: "critical", requiresAck: true, createdAt: iso(now - 2 * H), acks: [],
+      text: "Peanut-free cabin today. Remove the mixed-nut ramekins from the Zone 3 credenza before boarding, and do not plate dessert until the caterer's written peanut-free confirmation is on file.",
+    },
+    {
+      id: "inp-pic-1", flightId: FEATURED_FLIGHT_ID, fromId: PIC_ID, fromRole: "pilot", category: "safety", priority: "important", requiresAck: true, createdAt: iso(now - 90 * 60_000), acks: [],
+      text: "Expect moderate turbulence on descent into Geneva. Plan to complete service 45 minutes before top of descent; I will call 'cabin secure' 20 minutes prior. Brief SAGE and CEDAR on early seat-belt use at boarding.",
+    },
+    {
+      id: "inp-pa-1", flightId: FEATURED_FLIGHT_ID, fromId: PA_ID, fromRole: "assistant", category: "timing", priority: "important", requiresAck: true, createdAt: iso(now - 70 * 60_000), acks: [],
+      text: "Family arrives 15 minutes before the Principal. The Principal will board directly from the car — no reception line, please; welcome service in Zone 1 once seated.",
+    },
+    {
+      id: "inp-pa-2", flightId: FEATURED_FLIGHT_ID, fromId: PA_ID, fromRole: "assistant", category: "passenger", priority: "normal", requiresAck: false, createdAt: iso(now - 60 * 60_000), acks: [],
+      text: "COPPER's bed and water bowl travel in the second car. A short walk at the FBO is planned before boarding.",
+    },
+    {
+      id: "inp-pic-2", flightId: "flt-csi102", fromId: PIC_ID, fromRole: "pilot", category: "timing", priority: "normal", requiresAck: true, createdAt: iso(now - 3 * H), acks: [],
+      text: "Short sector to Farnborough — single light service only; cabin secure 15 minutes before landing.",
+    },
+  ];
+
   return {
+    crewInputs,
     seededAt: nowIso,
     flights,
     tasks,

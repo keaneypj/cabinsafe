@@ -8,12 +8,15 @@ CabinSafe is a working Progressive Web App, not a mockup. It brings together six
 
 | Module | What it does |
 |---|---|
+| **Pre-Boarding Checklist** (primary — *Boarding* tab) | The cabin attendant's single pre-boarding workspace for each flight. It shows: crew inputs from the Lead CA, pilots and the Principal's PA (acknowledgement can be required); outstanding items needing attention (critical blockers, blocked, overdue and critical items, equipment, unreviewed advisories); eight one-tap pre-boarding checks; and passenger-specific preparation. A time-stamped **Confirm pre-boarding complete** sign-off is enabled only when every check is done, every required input is acknowledged and no critical blocker remains. It confirms cabin preparation only; boarding and departure stay with the PIC. |
 | **Global Risk Intelligence** | METAR/TAF/SIGMET from NOAA Aviation Weather Center, U.S. State Department travel advisories, USGS earthquakes, GDACS disaster alerts and CDC travel health notices, retrieved server-side per flight. Clearly labelled simulated scenarios. Acknowledge any advisory and turn it into a cabin preparation task. |
 | **Flight & Cabin Readiness** | Flights, preflight/postflight checklists (Not Started / In Progress / Completed / Blocked / Not Applicable with reason), assignees, due times, notes, sign-off and history. A readiness index that is deliberately separate from task completion; unresolved critical blockers prevent a "Cabin Prepared" status. |
 | **Passenger Safety Profiles** | Eight fictional profiles (aliases, synthetic health data, a Vizsla). A rules engine turns documented accommodations into preparation, verification or confirmation tasks — never treatment. Medical detail is restricted by role. |
 | **Interactive G700 Cabin Map** | A custom SVG of a conceptual five-zone cabin with selectable equipment markers, inspection workflow, discrepancies, history and linked documents. Inspections update readiness live. |
 | **AI Safety Copilot** | Retrieval over a versioned demonstration document library plus current flight records, with citations and hard guardrails. A one-tap ten-section **Flight Safety Briefing** with copy/export/print. Live Claude answers when `ANTHROPIC_API_KEY` is set; otherwise a clearly labelled deterministic assistant. |
 | **Crew Coordination & Handovers** | Cabin attendant assignment, task assignment and queues, acknowledgements, structured handovers with acceptance, and a time-stamped audit history. **Demo Role Preview** for switching perspectives. |
+
+The mobile navigation is **Home · Flights · Boarding · Cabin · Copilot · More**. The pre-boarding checklist is also the top card on Home: cabin attendants see their own next flight, everyone else sees the next departure.
 
 A built-in guided demonstration — **Experience CabinSafe** — walks a recruiter through the whole story in about five minutes. See [docs/RECRUITER_WALKTHROUGH.md](docs/RECRUITER_WALKTHROUGH.md).
 
@@ -82,6 +85,7 @@ e2e/run.mjs               Playwright mobile workflow suite
 - Acknowledging an advisory can create a preparation task that carries the advisory's cabin relevance and source.
 - The Copilot and briefing read the same live state the dashboard does.
 - Assigning a task to a contract attendant places it in their queue; handover acceptance is time-stamped in the audit history.
+- Pre-boarding draws together the readiness blockers, open tasks, equipment, advisories and passenger rules for the cabin attendant. Crew inputs also appear in the safety briefing (section 8), and the Copilot answers "What's left before boarding?".
 
 ### Data persistence
 
@@ -130,9 +134,9 @@ Web app manifest (`/manifest.webmanifest`), maskable and Apple touch icons, stan
 
 Run in this repository's build environment (Chromium via Playwright, iPhone 14 Pro emulation, production build):
 
-- **Unit tests:** 25 passing (`npm test`) — seed integrity, relative dates, readiness blocking rules, rules engine, no-duplicate generation, Copilot refusals, citations, role filtering, briefing sections, superseded-document exclusion, feed parsers.
-- **End-to-end:** 23 passing (`npm run test:e2e`) — the 15 required workflows plus validation, role restriction, the full guided demo, PWA assets and console errors:
-  1. create and edit a flight · 2. complete a checklist item (and N/A reason validation) · 3. add a passenger · 4. rule-generated tasks and Lead review · 5. open an equipment marker · 6. complete an inspection · 7. readiness updates · 8. live-feed status / simulated advisory acknowledgement · 9. briefing and Copilot citations and guardrails · 10. assign a crew task · 11. switch role and accept a handover · 12. audit trail · 13. reset · 14. reload persistence · 15. no horizontal overflow on 21 mobile screens.
+- **Unit tests:** 30 passing (`npm test`) — seed integrity, relative dates, readiness blocking rules, rules engine, no-duplicate generation, Copilot refusals, citations, role filtering, briefing sections, superseded-document exclusion, feed parsers.
+- **End-to-end:** 25 passing (`npm run test:e2e`) — the 15 required workflows plus validation, role restriction, the pre-boarding flow (PA sends an input; cabin attendant acknowledges, completes checks and confirms), the full guided demo, PWA assets and console errors:
+  1. create and edit a flight · 2. complete a checklist item (and N/A reason validation) · 3. add a passenger · 4. rule-generated tasks and Lead review · 5. open an equipment marker · 6. complete an inspection · 7. readiness updates · 8. live-feed status / simulated advisory acknowledgement · 9. briefing and Copilot citations and guardrails · 10. assign a crew task · 11. switch role and accept a handover · 12. audit trail · 13. reset · 14. reload persistence · 15. no horizontal overflow on 22 mobile screens.
 
 Not tested: real iOS Safari / Android hardware, live external feeds (blocked in the build sandbox) and the live Claude path (no key available).
 

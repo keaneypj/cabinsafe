@@ -5,6 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createSeed, LEAD_ID, type SeedState } from "@/data/seed";
 import { buildChecklist } from "@/domain/checklists";
 import { can, type Permission } from "@/domain/permissions";
+import { computePreboarding } from "@/domain/preboarding";
 import { generateTasksForPassenger } from "@/domain/rules";
 import type {
   Advisory,
@@ -12,11 +13,13 @@ import type {
   AuditAction,
   AuditEvent,
   BriefingDoc,
+  CrewInput,
   CrewMember,
   Discrepancy,
   Flight,
   Handover,
   IntelSnapshot,
+  PreboardSignoff,
   Severity,
   Task,
   TaskStatus,
@@ -24,7 +27,7 @@ import type {
 import { uid } from "@/lib/format";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 4;
+const SCHEMA_VERSION = 5;
 
 export type Result<T = undefined> = { ok: true; value?: T } | { ok: false; error: string };
 
@@ -39,6 +42,7 @@ export interface AppState extends SeedState {
   currentUserId: string;
   acks: AdvisoryAck[];
   briefings: BriefingDoc[];
+  preboardSignoffs: PreboardSignoff[];
   intel: Record<string, IntelSnapshot>;
   demo: DemoState;
   hydrated: boolean;
@@ -78,6 +82,9 @@ export interface Actions {
   acceptHandover(handoverId: string): Result;
   saveBriefing(b: Omit<BriefingDoc, "id">): Result<BriefingDoc>;
   saveIntel(key: string, snap: IntelSnapshot): void;
+  addCrewInput(input: Pick<CrewInput, "flightId" | "category" | "priority" | "text" | "requiresAck">): Result<CrewInput>;
+  acknowledgeCrewInput(inputId: string): Result;
+  signOffPreboarding(flightId: string, note?: string): Result<PreboardSignoff>;
   resetDemo(): void;
   demoStart(): void;
   demoGo(step: number): void;
@@ -94,6 +101,7 @@ function initialState(): AppState {
     currentUserId: LEAD_ID,
     acks: [],
     briefings: [],
+    preboardSignoffs: [],
     intel: {},
     demo: { active: false, step: 0, done: {} },
     hydrated: false,
@@ -487,6 +495,54 @@ export const useStore = create<Store>()(
           const f = get().flights.find((x) => x.id === b.flightId);
           pushAudit(audit("briefing.generate", "briefing", doc.id, `Generated cabin safety briefing for ${f?.callsign ?? b.flightId}`, b.flightId));
           return { ok: true, value: doc };
+        },
+
+        addCrewInput(input) {
+          const d = deny("input.create");
+          if (d) return d;
+          const text = input.text.trim();
+          if (text.length < 5) return { ok: false, error: "Write an instruction of at least 5 characters." };
+          if (text.length > 500) return { ok: false, error: "Keep the input under 500 characters." };
+          const flight = get().flights.find((f) => f.id === input.flightId);
+          if (!flight) return { ok: false, error: "Flight not found." };
+          if (flight.status === "completed") return { ok: false, error: "This flight is already completed." };
+          const u = me();
+          const item: CrewInput = { ...input, text, id: uid("inp"), fromId: u.id, fromRole: u.role, createdAt: new Date().toISOString(), acks: [] };
+          set((s) => ({ crewInputs: [item, ...s.crewInputs] }));
+          pushAudit(audit("input.create", "crew_input", item.id, `Pre-boarding input to cabin attendant (${input.priority}): ${text.slice(0, 80)}${text.length > 80 ? "…" : ""}`, flight.id));
+          return { ok: true, value: item };
+        },
+
+        acknowledgeCrewInput(inputId) {
+          const item = get().crewInputs.find((i) => i.id === inputId);
+          if (!item) return { ok: false, error: "Input not found." };
+          const flight = get().flights.find((f) => f.id === item.flightId);
+          const u = me();
+          if (!flight || !(u.id === flight.cabinAttendantId || u.role === "lead")) return { ok: false, error: "Only the flight's cabin attendant or the Lead Cabin Attendant can acknowledge pre-boarding inputs." };
+          if (item.acks.some((a) => a.byId === u.id)) return { ok: false, error: "Already acknowledged." };
+          const at = new Date().toISOString();
+          set((s) => ({ crewInputs: s.crewInputs.map((i) => (i.id === inputId ? { ...i, acks: [...i.acks, { byId: u.id, at }] } : i)) }));
+          const from = get().crew.find((c) => c.id === item.fromId)?.name ?? "crew";
+          pushAudit(audit("input.acknowledge", "crew_input", inputId, `Acknowledged pre-boarding input from ${from}`, item.flightId));
+          return { ok: true };
+        },
+
+        signOffPreboarding(flightId, note) {
+          const d = deny("preboard.signoff");
+          if (d) return d;
+          const s = get();
+          const flight = s.flights.find((f) => f.id === flightId);
+          if (!flight) return { ok: false, error: "Flight not found." };
+          const u = me();
+          if (!(u.id === flight.cabinAttendantId || u.role === "lead")) return { ok: false, error: "Pre-boarding sign-off is made by the flight's cabin attendant or the Lead Cabin Attendant." };
+          const sim = s.advisories;
+          const live = s.intel[flightId]?.advisories ?? [];
+          const view = computePreboarding({ flight, tasks: s.tasks, equipment: s.equipment, discrepancies: s.discrepancies, advisories: [...sim, ...live], acks: s.acks, inputs: s.crewInputs, signoffs: s.preboardSignoffs, nowMs: Date.now() });
+          if (!view.canSignOff) return { ok: false, error: `Cannot sign off yet: ${view.signoffBlockers.join("; ")}.` };
+          const rec: PreboardSignoff = { id: uid("pbs"), flightId, byId: u.id, at: new Date().toISOString(), openItemsAtSignoff: view.openAtSignoff, note: note?.trim() || undefined };
+          set((st) => ({ preboardSignoffs: [rec, ...st.preboardSignoffs] }));
+          pushAudit(audit("preboard.signoff", "flight", flightId, `Pre-boarding preparation confirmed for ${flight.callsign} by ${u.name}${view.openAtSignoff ? ` — ${view.openAtSignoff} other open item(s) noted` : ""}`, flightId));
+          return { ok: true, value: rec };
         },
 
         saveIntel(key, snap) {

@@ -75,10 +75,12 @@ export function useFlightContext(flightId: string | undefined, now: number): Fli
       handovers: s.handovers,
       role: me.role,
       nowMs: now,
+      crewInputs: s.crewInputs,
+      preboardSignoffs: s.preboardSignoffs,
       liveWeather: intel?.metars.map((m) => ({ station: m.station, raw: m.raw, observedAt: m.observedAt })),
       liveTafs: intel?.tafs.map((t) => ({ station: t.station, raw: t.raw, validFrom: t.validFrom, validTo: t.validTo })),
     };
-  }, [s.flights, s.tasks, s.equipment, s.discrepancies, s.acks, s.passengers, s.crew, s.handovers, s.intel, advisories, flightId, me.role, now]);
+  }, [s.flights, s.tasks, s.equipment, s.discrepancies, s.acks, s.passengers, s.crew, s.handovers, s.intel, s.crewInputs, s.preboardSignoffs, advisories, flightId, me.role, now]);
 }
 
 export function useCrewName(): (id?: string) => string {
