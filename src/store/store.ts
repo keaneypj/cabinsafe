@@ -2,8 +2,10 @@
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { createInventory } from "@/data/inventory";
 import { createSeed, LEAD_ID, type SeedState } from "@/data/seed";
 import { buildChecklist } from "@/domain/checklists";
+import { parseCount } from "@/domain/inventory";
 import { can, type Permission } from "@/domain/permissions";
 import { computePreboarding } from "@/domain/preboarding";
 import { generateTasksForPassenger } from "@/domain/rules";
@@ -19,6 +21,7 @@ import type {
   Flight,
   Handover,
   IntelSnapshot,
+  InventoryItem,
   PreboardSignoff,
   Severity,
   Task,
@@ -27,7 +30,9 @@ import type {
 import { uid } from "@/lib/format";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 7;
+const SCHEMA_VERSION = 8;
+/** Repeated count changes to one item by the same person within this window share one audit entry. */
+const INVENTORY_AUDIT_MERGE_MS = 5 * 60_000;
 
 export type Result<T = undefined> = { ok: true; value?: T } | { ok: false; error: string };
 
@@ -43,6 +48,7 @@ export interface AppState extends SeedState {
   acks: AdvisoryAck[];
   briefings: BriefingDoc[];
   preboardSignoffs: PreboardSignoff[];
+  inventory: InventoryItem[];
   intel: Record<string, IntelSnapshot>;
   demo: DemoState;
   hydrated: boolean;
@@ -85,6 +91,8 @@ export interface Actions {
   addCrewInput(input: Pick<CrewInput, "flightId" | "category" | "priority" | "text" | "requiresAck">): Result<CrewInput>;
   acknowledgeCrewInput(inputId: string): Result;
   signOffPreboarding(flightId: string, note?: string): Result<PreboardSignoff>;
+  setInventoryCount(itemId: string, count: number | string): Result;
+  fillInventoryToPar(): Result<{ changed: number }>;
   resetDemo(): void;
   demoStart(): void;
   demoGo(step: number): void;
@@ -102,6 +110,7 @@ function initialState(): AppState {
     acks: [],
     briefings: [],
     preboardSignoffs: [],
+    inventory: createInventory(),
     intel: {},
     demo: { active: false, step: 0, done: {} },
     hydrated: false,
@@ -546,6 +555,41 @@ export const useStore = create<Store>()(
           return { ok: true, value: rec };
         },
 
+        setInventoryCount(itemId, count) {
+          const d = deny("inventory.update");
+          if (d) return d;
+          const item = get().inventory.find((i) => i.id === itemId);
+          if (!item) return { ok: false, error: "Inventory item not found." };
+          const n = parseCount(count);
+          if (n === null) return { ok: false, error: "Enter a whole number from 0 to 99." };
+          if (n === item.onBoard) return { ok: true };
+          const u = me();
+          const at = new Date().toISOString();
+          set((s) => ({ inventory: s.inventory.map((i) => (i.id === itemId ? { ...i, onBoard: n, updatedAt: at, updatedById: u.id } : i)) }));
+          const summary = `Logged ${item.name}: ${n}/${item.par} on board`;
+          // Tapping + several times should leave one audit entry, not one per tap.
+          const last = get().audit[0];
+          if (last && last.action === "inventory.update" && last.entityId === itemId && last.actorId === u.id && Date.now() - new Date(last.at).getTime() < INVENTORY_AUDIT_MERGE_MS) {
+            set((s) => ({ audit: [{ ...last, at, summary }, ...s.audit.slice(1)] }));
+          } else {
+            pushAudit(audit("inventory.update", "inventory", itemId, summary));
+          }
+          return { ok: true };
+        },
+
+        fillInventoryToPar() {
+          const d = deny("inventory.update");
+          if (d) return d;
+          const short = get().inventory.filter((i) => i.onBoard < i.par);
+          if (!short.length) return { ok: true, value: { changed: 0 } };
+          const u = me();
+          const at = new Date().toISOString();
+          const ids = new Set(short.map((i) => i.id));
+          set((s) => ({ inventory: s.inventory.map((i) => (ids.has(i.id) ? { ...i, onBoard: i.par, updatedAt: at, updatedById: u.id } : i)) }));
+          pushAudit(audit("inventory.update", "inventory", "all", `Restocked to usual levels: ${short.map((i) => `${i.name} ${i.onBoard}→${i.par}`).join(", ")}`));
+          return { ok: true, value: { changed: short.length } };
+        },
+
         saveIntel(key, snap) {
           set((s) => ({ intel: { ...s.intel, [key]: snap } }));
         },
@@ -579,7 +623,10 @@ export const useStore = create<Store>()(
         const { hydrated, ...rest } = s;
         return Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== "function")) as Partial<Store>;
       },
-      migrate: () => initialState() as unknown as Store,
+      // Version 8 only adds the cabin inventory, so keep existing demo data and add it.
+      // Older versions restore the seed.
+      migrate: (persisted, version) =>
+        (version === 7 && persisted ? { ...(persisted as AppState), schema: SCHEMA_VERSION, inventory: createInventory() } : initialState()) as unknown as Store,
       onRehydrateStorage: () => (_state, error) => {
         if (error) console.warn("CabinSafe: stored demo data could not be read; using seeded data.", error);
       },

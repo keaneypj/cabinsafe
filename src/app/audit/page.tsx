@@ -12,7 +12,7 @@ import { useStore } from "@/store/store";
 const GROUPS: { key: string; label: string; match: (e: AuditEvent) => boolean }[] = [
   { key: "all", label: "All", match: () => true },
   { key: "checklist", label: "Checklists & tasks", match: (e) => e.action.startsWith("checklist") || e.action.startsWith("task") },
-  { key: "equipment", label: "Equipment", match: (e) => e.action.startsWith("equipment") || e.action.startsWith("discrepancy") },
+  { key: "equipment", label: "Equipment & stock", match: (e) => e.action.startsWith("equipment") || e.action.startsWith("discrepancy") || e.action.startsWith("inventory") },
   { key: "handover", label: "Handovers", match: (e) => e.action.startsWith("handover") },
   { key: "records", label: "Records", match: (e) => /^(passenger|flight|advisory|briefing|demo|input|preboard)/.test(e.action) },
 ];

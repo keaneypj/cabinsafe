@@ -363,7 +363,24 @@ export type AuditAction =
   | "demo.reset"
   | "input.create"
   | "input.acknowledge"
-  | "preboard.signoff";
+  | "preboard.signoff"
+  | "inventory.update";
+
+// ───────────────────────────── Cabin inventory ─────────────────────────────
+
+export type InventoryCategory = "wine" | "soft_drinks" | "fresh" | "snacks" | "coffee";
+
+/** A routinely stocked catering item: how many are on board against the usual stock level. */
+export interface InventoryItem {
+  id: string;
+  name: string;
+  category: InventoryCategory;
+  /** Usual stock level (the "5" in "3/5"). */
+  par: number;
+  onBoard: number;
+  updatedAt?: ISODate;
+  updatedById?: string;
+}
 
 export interface AuditEvent {
   id: string;
