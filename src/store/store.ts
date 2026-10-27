@@ -30,7 +30,7 @@ import type {
 import { uid } from "@/lib/format";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 8;
+const SCHEMA_VERSION = 9;
 /** Repeated count changes to one item by the same person within this window share one audit entry. */
 const INVENTORY_AUDIT_MERGE_MS = 5 * 60_000;
 
@@ -667,10 +667,10 @@ export const useStore = create<Store>()(
         const { hydrated, ...rest } = s;
         return Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== "function")) as Partial<Store>;
       },
-      // Version 8 only adds the cabin inventory, so keep existing demo data and add it.
+      // Version 9 only adds the cabin inventory, so keep version 8 demo data and add it.
       // Older versions restore the seed.
       migrate: (persisted, version) =>
-        (version === 7 && persisted ? { ...(persisted as AppState), schema: SCHEMA_VERSION, inventory: createInventory() } : initialState()) as unknown as Store,
+        (version === 8 && persisted ? { ...(persisted as AppState), schema: SCHEMA_VERSION, inventory: createInventory() } : initialState()) as unknown as Store,
       onRehydrateStorage: () => (_state, error) => {
         if (error) console.warn("CabinSafe: stored demo data could not be read; using seeded data.", error);
       },

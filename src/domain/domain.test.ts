@@ -88,7 +88,7 @@ describe("readiness", () => {
 describe("rules engine", () => {
   it("creates boarding preparation for a documented mobility requirement", () => {
     const c = ctx();
-    const rebecca = c.passengers.find((p) => p.alias === "REBECCA")!;
+    const rebecca = c.passengers.find((p) => p.alias === "Rebecca")!;
     const tasks = generateTasksForPassenger(rebecca, c.flight, new Set(), new Date(NOW).toISOString());
     expect(tasks.some((t) => t.title.startsWith("Boarding assistance preparation"))).toBe(true);
     const equip = tasks.find((t) => t.title.startsWith("Confirm medical equipment"))!;
@@ -97,15 +97,15 @@ describe("rules engine", () => {
 
   it("creates ingredient verification and cross-contact tasks for allergy precautions", () => {
     const c = ctx();
-    const orion = c.passengers.find((p) => p.alias === "ORION")!;
-    const titles = generateTasksForPassenger(orion, c.flight, new Set(), "").map((t) => t.title);
+    const michael = c.passengers.find((p) => p.alias === "Michael")!;
+    const titles = generateTasksForPassenger(michael, c.flight, new Set(), "").map((t) => t.title);
     expect(titles).toContain("Catering ingredient verification — peanut");
     expect(titles).toContain("Galley cross-contact prevention — peanut");
   });
 
   it("does not duplicate existing tasks", () => {
     const c = ctx();
-    const rebecca = c.passengers.find((p) => p.alias === "REBECCA")!;
+    const rebecca = c.passengers.find((p) => p.alias === "Rebecca")!;
     const first = generateTasksForPassenger(rebecca, c.flight, new Set(), "");
     const again = generateTasksForPassenger(rebecca, c.flight, new Set(first.map((t) => t.id)), "");
     expect(again).toHaveLength(0);
@@ -125,7 +125,7 @@ describe("copilot", () => {
   });
 
   it("refuses medical treatment questions", () => {
-    expect(answer("What medication should I give REBECCA?", ctx()).kind).toBe("medical_refusal");
+    expect(answer("What medication should I give Rebecca?", ctx()).kind).toBe("medical_refusal");
   });
 
   it("answers allergen procedure questions with citations", () => {

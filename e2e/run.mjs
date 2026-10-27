@@ -147,14 +147,14 @@ await step("14. Reload and verify persistence", async () => {
 await step("3+4. Add passenger to manifest and generate preparation tasks", async () => {
   await go("/flights/flt-csi102?tab=manifest");
   await tid("add-passenger").click();
-  await tid("add-pax-REBECCA").click();
+  await tid("add-pax-Rebecca").click();
   await tid("generated-result").waitFor();
   const txt = await tid("generated-result").innerText();
-  assert(/Boarding assistance preparation — REBECCA/.test(txt), "boarding task not generated");
-  assert(/Confirm medical equipment requirements — REBECCA/.test(txt), "confirmation task not generated");
+  assert(/Boarding assistance preparation — Rebecca/.test(txt), "boarding task not generated");
+  assert(/Confirm medical equipment requirements — Rebecca/.test(txt), "confirmation task not generated");
   await page.screenshot({ path: `${OUT}03-generated.png` });
   await page.getByRole("button", { name: "Done" }).click();
-  await tid("manifest-list").getByText("REBECCA").waitFor();
+  await tid("manifest-list").getByText("Rebecca").waitFor();
 });
 
 await step("4b. Lead CA reviews a generated task", async () => {
@@ -341,7 +341,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
 });
 
 await step("15. Mobile layout: no horizontal overflow on any screen", async () => {
-  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/intel", "/copilot", "/more", "/passengers", "/passengers/pax-orion", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
+  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/intel", "/copilot", "/more", "/passengers", "/passengers/pax-michael", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
     await go(p);
     await noHorizontalOverflow(p);
   }

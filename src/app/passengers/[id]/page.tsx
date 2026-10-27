@@ -47,8 +47,8 @@ function Passenger() {
       <div className="flex items-center gap-4 animate-fade-up">
         <Avatar initials={p.initials} size={60} tone={p.category === "principal" ? "gold" : "navy"} />
         <div>
-          <div className="eyebrow">Passenger alias</div>
-          <h1 className="display text-[2rem] leading-none tracking-wide">{p.alias}</h1>
+          <div className="eyebrow">Passenger</div>
+          <h1 className="display text-[2rem] leading-none">{p.alias}</h1>
           <div className="text-sm text-slate mt-1">{p.relationship}</div>
         </div>
       </div>
