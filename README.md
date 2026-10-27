@@ -8,7 +8,7 @@ CabinSafe is a working Progressive Web App, not a mockup. It brings together six
 
 | Module | What it does |
 |---|---|
-| **Pre-Boarding Checklist** (primary — *Boarding* tab) | The cabin attendant's single pre-boarding workspace for each flight. It shows: crew inputs from the Lead CA, pilots and the Principal's PA (acknowledgement can be required); outstanding items needing attention (critical blockers, blocked, overdue and critical items, equipment, unreviewed advisories); eight one-tap pre-boarding checks; and passenger-specific preparation. A time-stamped **Confirm pre-boarding complete** sign-off is enabled only when every check is done, every required input is acknowledged and no critical blocker remains. It confirms cabin preparation only; boarding and departure stay with the PIC. |
+| **Pre-Boarding Checklist** (primary — *Boarding* tab) | The cabin attendant's preflight checklist before passengers board. **Everyday checks:** eight standard items from the preflight checklist template (they also appear in each flight's Preflight checklist). **Added by others:** items from the Lead CA, pilots or the Principal's PA (three seeded for the demo); they can add more, and each must be completed. **Needs attention:** blockers and blocked, overdue or critical items elsewhere. **Passenger-specific:** preparation from documented accommodations. **Confirm Pre-Boarding Complete** stays locked until every item is done and no critical blocker remains. It confirms cabin preparation only; boarding and departure stay with the PIC. |
 | **Global Risk Intelligence** | METAR/TAF/SIGMET from NOAA Aviation Weather Center, U.S. State Department travel advisories, USGS earthquakes, GDACS disaster alerts and CDC travel health notices, retrieved server-side per flight. Clearly labelled simulated scenarios. Acknowledge any advisory and turn it into a cabin preparation task. |
 | **Flight & Cabin Readiness** | Flights, preflight/postflight checklists (Not Started / In Progress / Completed / Blocked / Not Applicable with reason), assignees, due times, notes, sign-off and history. A readiness index that is deliberately separate from task completion; unresolved critical blockers prevent a "Cabin Prepared" status. |
 | **Passenger Safety Profiles** | Eight fictional profiles (aliases, synthetic health data, a Vizsla). A rules engine turns documented accommodations into preparation, verification or confirmation tasks — never treatment. Medical detail is restricted by role. |
@@ -76,6 +76,8 @@ public/sw.js              Service worker (static assets only; never caches /api)
 e2e/run.mjs               Playwright mobile workflow suite
 ```
 
+**Design:** Apple Human Interface–inspired. It uses the system San Francisco type stack (Inter as fallback off Apple devices), Large Titles, inset grouped lists, iOS segmented controls, a translucent navigation bar and tab bar, and restrained tinted controls. Light and Dark appearance follow the system setting or a choice in *More → Appearance*, and the palette is built from semantic tokens in `src/app/globals.css`.
+
 **Stack:** Next.js 16 (App Router, Turbopack) · React 19 · TypeScript (strict) · Tailwind CSS 4 · Zustand · lucide-react · Anthropic TypeScript SDK · Vitest · Playwright.
 
 ### Integration points (how the six modules connect)
@@ -85,7 +87,7 @@ e2e/run.mjs               Playwright mobile workflow suite
 - Acknowledging an advisory can create a preparation task that carries the advisory's cabin relevance and source.
 - The Copilot and briefing read the same live state the dashboard does.
 - Assigning a task to a contract attendant places it in their queue; handover acceptance is time-stamped in the audit history.
-- Pre-boarding draws together the readiness blockers, open tasks, equipment, advisories and passenger rules for the cabin attendant. Crew inputs also appear in the safety briefing (section 8), and the Copilot answers "What's left before boarding?".
+- Pre-boarding draws together the readiness blockers, open tasks, equipment, advisories and passenger rules for the cabin attendant. Items added by others appear in the flight's Preflight checklist and in the safety briefing (section 8), and the Copilot answers "What's left before boarding?".
 
 ### Data persistence
 

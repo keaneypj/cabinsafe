@@ -37,7 +37,7 @@ export default function DiscrepanciesPage() {
                   <CircleAlert className={d.severity === "critical" ? "size-5 text-bad" : d.severity === "major" ? "size-5 text-warn" : "size-5 text-slate"} />
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap gap-1.5 mb-1">
-                      <Badge tone={d.severity === "critical" ? "bad" : d.severity === "major" ? "warn" : "neutral"}>{d.severity.toUpperCase()}</Badge>
+                      <Badge tone={d.severity === "critical" ? "bad" : d.severity === "major" ? "warn" : "neutral"}><span className="capitalize">{d.severity}</span></Badge>
                       <Badge tone={d.status === "resolved" ? "ok" : d.status === "deferred" ? "info" : "warn"}>{d.status}</Badge>
                       <Badge tone="neutral">{d.phase}</Badge>
                     </div>

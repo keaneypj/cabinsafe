@@ -56,16 +56,16 @@ export function AppShell({ children }: { children: ReactNode }) {
       <Toaster />
 
       {/* Desktop / tablet side rail */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-[15.5rem] flex-col border-r hairline bg-midnight-900/60 backdrop-blur px-4 py-6 no-print">
-        <Link href="/" className="px-2 mb-8" aria-label="CabinSafe Intelligence home">
+      <aside className="hidden md:flex fixed inset-y-0 left-0 w-[15.5rem] flex-col border-r hairline bg-navy px-3 py-5 no-print">
+        <Link href="/" className="px-3 mb-6" aria-label="CabinSafe Intelligence home">
           <Wordmark />
         </Link>
         <nav aria-label="Primary" className="flex flex-col gap-1">
           {NAV.map((n) => {
             const active = n.match(pathname);
             return (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cx("flex items-center gap-3 rounded-xl px-3 min-h-11 text-[0.9375rem] transition-colors", active ? "bg-gold/10 text-gold font-semibold" : "text-slate hover:text-ivory hover:bg-navy/60")}>
-                <n.icon className="size-5" aria-hidden />
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cx("flex items-center gap-3 rounded-lg px-3 min-h-10 text-[0.9375rem] transition-colors", active ? "bg-gold/12 text-gold font-semibold" : "text-ivory hover:bg-navy-700")}>
+                <n.icon className={cx("size-5", !active && "text-gold")} aria-hidden />
                 {n.label}
               </Link>
             );
@@ -77,15 +77,13 @@ export function AppShell({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b hairline bg-midnight/85 backdrop-blur-md no-print" style={{ paddingTop: "var(--safe-top)" }}>
-        <div className="mx-auto max-w-4xl flex items-center justify-between gap-3 px-4 h-15">
+      <header className="sticky top-0 z-30 border-b hairline bg-[var(--chrome)] backdrop-blur-xl backdrop-saturate-150 no-print" style={{ paddingTop: "var(--safe-top)" }}>
+        <div className="mx-auto max-w-4xl flex items-center justify-between gap-3 px-4 h-13">
           <Link href="/" className="md:hidden" aria-label="CabinSafe Intelligence home">
             <Wordmark />
           </Link>
-          <div className="hidden md:block text-xs text-slate">
-            <span className="eyebrow">Private Aviation Safety Command</span>
-          </div>
-          {hydrated ? <RoleChip /> : <Skeleton className="h-10 w-32 rounded-full" />}
+          <div className="hidden md:block text-[0.8125rem] text-slate-400">Private aviation cabin safety</div>
+          {hydrated ? <RoleChip /> : <Skeleton className="h-9 w-28 rounded-full" />}
         </div>
         {!online && (
           <div className="flex items-center justify-center gap-2 bg-warn-bg text-warn text-xs px-4 py-1.5" role="status">
@@ -96,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <main
         id="main"
-        className={cx("mx-auto max-w-4xl px-4 pt-4", demoActive ? "pb-[calc(var(--nav-h)+var(--safe-bottom)+13rem)]" : "pb-[calc(var(--nav-h)+var(--safe-bottom)+1.5rem)]", "md:pb-12")}
+        className={cx("mx-auto max-w-4xl px-4 pt-3", demoActive ? "pb-[calc(var(--nav-h)+var(--safe-bottom)+13rem)]" : "pb-[calc(var(--nav-h)+var(--safe-bottom)+1.5rem)]", "md:pb-12")}
       >
         {hydrated ? children : <LoadingScreen />}
       </main>
@@ -104,16 +102,15 @@ export function AppShell({ children }: { children: ReactNode }) {
       {hydrated && <DemoCoach />}
 
       {/* Mobile bottom navigation */}
-      <nav aria-label="Primary" className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t hairline bg-midnight-900/92 backdrop-blur-xl no-print" style={{ paddingBottom: "var(--safe-bottom)" }}>
+      <nav aria-label="Primary" className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t hairline bg-[var(--chrome)] backdrop-blur-xl backdrop-saturate-150 no-print" style={{ paddingBottom: "var(--safe-bottom)" }}>
         <ul className="grid grid-cols-6 h-[var(--nav-h)]">
           {NAV.map((n) => {
             const active = n.match(pathname);
             return (
               <li key={n.href}>
-                <Link href={n.href} aria-current={active ? "page" : undefined} className={cx("relative flex h-full flex-col items-center justify-center gap-1 text-[0.625rem] min-[400px]:text-[0.6875rem] transition-colors", active ? "text-gold" : "text-slate-400 hover:text-ivory")} data-testid={`nav-${n.label.toLowerCase()}`}>
-                  {active && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-gold" aria-hidden />}
-                  <n.icon className="size-[1.375rem]" strokeWidth={active ? 2.1 : 1.7} aria-hidden />
-                  <span className={active ? "font-semibold" : ""}>{n.label}</span>
+                <Link href={n.href} aria-current={active ? "page" : undefined} className={cx("relative flex h-full flex-col items-center justify-center gap-0.5 pt-1 text-[0.625rem] font-medium tracking-[0.005em] transition-colors", active ? "text-gold" : "text-slate-500 hover:text-ivory")} data-testid={`nav-${n.label.toLowerCase()}`}>
+                  <n.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} aria-hidden />
+                  <span>{n.label}</span>
                 </Link>
               </li>
             );

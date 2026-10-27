@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useMemo, useState } from "react";
-import { CloudLightning, FileText, Handshake, Pencil, Plus, Shield, UserMinus, Users } from "lucide-react";
+import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
+import { Circle, CircleCheck, CloudLightning, FileText, Handshake, Pencil, Plus, Shield, UserMinus, Users } from "lucide-react";
 import { ComponentBreakdown, FlightTimes, ReadinessPanel, ReadinessPill, RouteLine } from "@/components/flight";
 import { AddPassengerSheet, PassengerRow } from "@/components/passengers";
 import { PreboardCard } from "@/components/PreboardCard";
@@ -82,9 +82,9 @@ function FlightDetail() {
       </Card>
 
       <div className="scroll-x -mx-4 px-4 mb-4">
-        <div role="tablist" aria-label="Flight sections" className="flex gap-1 rounded-2xl bg-midnight-900/50 p-1 border hairline w-max min-w-full">
+        <div role="tablist" aria-label="Flight sections" className="flex rounded-[0.6rem] bg-navy-700 p-0.5 w-max min-w-full">
           {(["overview", "checklist", "manifest", "crew"] as Tab[]).map((t) => (
-            <button key={t} role="tab" aria-selected={tab === t} onClick={() => switchTab(t)} className={cx("flex-1 min-h-10 rounded-xl px-4 text-sm capitalize transition-colors", tab === t ? "bg-navy-600 text-ivory font-semibold shadow" : "text-slate hover:text-ivory")} data-testid={`tab-${t}`}>
+            <button key={t} role="tab" aria-selected={tab === t} onClick={() => switchTab(t)} className={cx("flex-1 min-h-8 rounded-[0.5rem] px-4 text-[0.8125rem] capitalize transition-colors", tab === t ? "seg-on text-ivory font-semibold" : "text-slate hover:text-ivory")} data-testid={`tab-${t}`}>
               {t}
             </button>
           ))}
@@ -135,6 +135,8 @@ function FlightDetail() {
 
 function ChecklistTab({ flightId, initialFilter, onOpen, defaultPhase }: { flightId: string; initialFilter: Filter; onOpen: (id: string) => void; defaultPhase: "preflight" | "postflight" }) {
   const allTasks = useStore((s) => s.tasks);
+  const allInputs = useStore((s) => s.crewInputs);
+  const name = useCrewName();
   const me = useMe();
   const [phase, setPhase] = useState<"preflight" | "postflight">(defaultPhase);
   const [filter, setFilter] = useState<Filter>(initialFilter);
@@ -152,6 +154,8 @@ function ChecklistTab({ flightId, initialFilter, onOpen, defaultPhase }: { fligh
   const shown = tasks.filter(predicates[filter]);
   const order = phase === "preflight" ? PREFLIGHT_ORDER : POSTFLIGHT_ORDER;
   const groups = order.map((c) => ({ c, items: shown.filter((t) => t.category === c), all: tasks.filter((t) => t.category === c) })).filter((g) => g.items.length);
+  // Items added to the pre-boarding checklist by the Lead CA, flight crew or Principal's PA.
+  const others = phase === "preflight" && (filter === "all" || filter === "open") ? allInputs.filter((i) => i.flightId === flightId && (filter === "all" || i.acks.length === 0)) : [];
 
   return (
     <div>
@@ -175,23 +179,49 @@ function ChecklistTab({ flightId, initialFilter, onOpen, defaultPhase }: { fligh
       {groups.length === 0 ? (
         <EmptyState title={tasks.length ? "No items match this filter" : `No ${phase} items`}>{tasks.length ? "Try another filter." : phase === "postflight" ? "Postflight checklist items are created after the flight is completed." : "Add a task to begin."}</EmptyState>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-5">
           {groups.map((g) => {
             const done = g.all.filter((t) => !isOpenTask(t)).length;
             return (
-              <section key={g.c} className="card p-0 overflow-hidden" aria-label={CATEGORY_LABELS[g.c as ChecklistCategory]}>
-                <div className="flex items-center justify-between px-3.5 py-2.5 bg-midnight-900/30 border-b hairline">
-                  <h3 className="text-[0.8125rem] font-semibold text-ivory">{CATEGORY_LABELS[g.c as ChecklistCategory]}</h3>
-                  <span className={cx("text-xs tnum", done === g.all.length ? "text-ok" : "text-slate")}>
-                    {done}/{g.all.length}
-                  </span>
-                </div>
-                <div className="divide-y divide-slate/10">
-                  {g.items.map((t) => (
-                    <TaskRow key={t.id} task={t} onOpen={(x) => onOpen(x.id)} />
-                  ))}
-                </div>
-              </section>
+              <Fragment key={g.c}>
+                <section aria-label={CATEGORY_LABELS[g.c as ChecklistCategory]}>
+                  <div className="flex items-end justify-between px-4 mb-1.5">
+                    <h3 className="eyebrow">{CATEGORY_LABELS[g.c as ChecklistCategory]}</h3>
+                    <span className={cx("text-[0.75rem] tnum", done === g.all.length ? "text-ok" : "text-slate-500")}>
+                      {done}/{g.all.length}
+                    </span>
+                  </div>
+                  <div className="card overflow-hidden divide-y divide-[var(--separator)]">
+                    {g.items.map((t) => (
+                      <TaskRow key={t.id} task={t} onOpen={(x) => onOpen(x.id)} />
+                    ))}
+                  </div>
+                </section>
+                {g.c === "preboarding" && others.length > 0 && (
+                  <section aria-label="Pre-boarding, added by others" data-testid="checklist-others">
+                    <div className="flex items-end justify-between px-4 mb-1.5">
+                      <h3 className="eyebrow">Pre-Boarding · Added by Others</h3>
+                      <span className="text-[0.75rem] tnum text-slate-500">
+                        {others.filter((i) => i.acks.length).length}/{others.length}
+                      </span>
+                    </div>
+                    <div className="card overflow-hidden divide-y divide-[var(--separator)]">
+                      {others.map((i) => (
+                        <Link key={i.id} href={`/preboard?flight=${flightId}`} className="flex items-start gap-3 px-3.5 py-3 min-h-14 active:bg-navy-700">
+                          {i.acks.length ? <CircleCheck className="size-5 shrink-0 mt-0.5 text-ok" aria-label="Completed" /> : <Circle className="size-5 shrink-0 mt-0.5 text-slate-400" aria-label="Not started" />}
+                          <span className="flex-1 min-w-0">
+                            <span className={cx("block text-[0.875rem] leading-snug", i.acks.length ? "text-slate-400" : "text-ivory")}>{i.text}</span>
+                            <span className="block text-[0.6875rem] text-slate-400 mt-1">
+                              Added by {name(i.fromId)}
+                              {i.acks.length ? ` · done by ${name(i.acks[0].byId)}` : ""}
+                            </span>
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  </section>
+                )}
+              </Fragment>
             );
           })}
         </div>
@@ -278,7 +308,7 @@ function ManifestTab({ flightId }: { flightId: string }) {
       {pax.length === 0 ? (
         <EmptyState icon={<Users className="size-7" />} title="Manifest is empty" />
       ) : (
-        <div className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="manifest-list">
+        <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="manifest-list">
           {pax.map((p) => (
             <PassengerRow
               key={p!.id}
@@ -339,7 +369,7 @@ function CrewTab({ flightId }: { flightId: string }) {
   return (
     <div className="space-y-4">
       <section className="card p-0 overflow-hidden">
-        <ul className="divide-y divide-slate/10">
+        <ul className="divide-y divide-[var(--separator)]">
           {row(flight.pilotIds[0], "Captain · Pilot in Command")}
           {row(flight.pilotIds[1], "First Officer")}
           {row(flight.leadId, "Lead Cabin Attendant")}

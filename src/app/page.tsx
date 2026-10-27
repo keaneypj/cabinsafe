@@ -52,13 +52,12 @@ export default function HomePage() {
         <h1 className="display text-[2.1rem] leading-tight mt-0.5">
           {greeting(now)}, <span className="gold-text">{/^(Capt\.|F\/O)/.test(me.name) ? me.name : me.name.split(" ")[0]}</span>
         </h1>
-        <p className="text-sm text-slate mt-1">Quiet excellence. Absolute discretion. Anticipatory safety.</p>
       </div>
 
-      {preboardFlight && <PreboardCard flight={preboardFlight} emphasis />}
+      {preboardFlight && <PreboardCard flight={preboardFlight} />}
 
       {!demoActive && (
-        <button onClick={() => setIntro(true)} className="w-full text-left card p-4 border-gold/30 bg-gradient-to-br from-gold/12 via-navy/60 to-navy/40 hover:border-gold/55 transition-colors animate-fade-up" data-testid="experience-cta">
+        <button onClick={() => setIntro(true)} className="w-full text-left card p-4 transition-colors animate-fade-up" data-testid="experience-cta">
           <span className="flex items-center gap-3">
             <span className="grid size-11 place-items-center rounded-full bg-gold text-midnight shrink-0">
               <Play className="size-5 ml-0.5" fill="currentColor" />
@@ -74,7 +73,7 @@ export default function HomePage() {
 
       {flight && r ? (
         <Card className="p-0 overflow-hidden animate-fade-up" data-testid="featured-flight">
-          <Link href={`/flights/${flight.id}`} className="block p-4 pb-3 bg-gradient-to-b from-navy-600/30 to-transparent">
+          <Link href={`/flights/${flight.id}`} className="block p-4 pb-3">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <span className="eyebrow !text-gold">Next departure</span>
@@ -125,7 +124,7 @@ export default function HomePage() {
                 <span className="flex-1 min-w-0">
                   <span className="flex flex-wrap gap-1.5 mb-1">
                     {a.origin === "simulated" ? <SimulatedBadge /> : <Badge tone="info">LIVE</Badge>}
-                    <Badge tone={a.severity === "warning" || a.severity === "critical" ? "warn" : "neutral"}>{a.severity.toUpperCase()}</Badge>
+                    <Badge tone={a.severity === "warning" || a.severity === "critical" ? "warn" : "neutral"}><span className="capitalize">{a.severity}</span></Badge>
                     {isAcked(acks, a.id, flight.id) && <Badge tone="ok">Acknowledged</Badge>}
                   </span>
                   <span className="block text-sm text-ivory leading-snug">{a.title}</span>
@@ -140,7 +139,7 @@ export default function HomePage() {
       <section>
         <SectionHeader eyebrow={me.title} title="My queue" action={<span className="text-xs text-slate tnum">{myQueue.length} open</span>} />
         {myQueue.length ? (
-          <div className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="my-queue">
+          <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="my-queue">
             {myQueue.slice(0, 5).map((t) => (
               <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} showFlight={callsign(t.flightId)} />
             ))}
@@ -172,7 +171,7 @@ export default function HomePage() {
       {/* Recent activity */}
       <section>
         <SectionHeader eyebrow="Accountability" title="Recent activity" action={<Link href="/audit" className="text-sm text-gold min-h-9 inline-flex items-center">Audit history</Link>} />
-        <ol className="card p-0 divide-y divide-slate/10">
+        <ol className="card p-0 divide-y divide-[var(--separator)]">
           {audit.slice(0, 4).map((e) => (
             <li key={e.id} className="flex items-start gap-3 px-3.5 py-3">
               <History className="size-4 text-slate-500 mt-0.5 shrink-0" />

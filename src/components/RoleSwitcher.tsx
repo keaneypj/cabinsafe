@@ -14,14 +14,14 @@ export function RoleChip() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-full border border-slate/15 bg-navy/70 pl-1 pr-3 py-1 min-h-10 hover:border-gold/40 transition-colors"
+        className="flex items-center gap-2 rounded-full bg-navy-700 pl-1 pr-3 py-1 min-h-9 hover:bg-navy-600 transition-colors"
         aria-label={`Demo Role Preview: viewing as ${me.name}, ${me.title}. Change role`}
         data-testid="role-chip"
       >
-        <Avatar initials={me.initials} size={30} tone={me.role === "lead" ? "gold" : "navy"} />
-        <span className="text-left leading-tight hidden min-[380px]:block">
-          <span className="block text-[0.5625rem] uppercase tracking-[0.14em] text-gold/80">Demo Role Preview</span>
-          <span className="block text-xs text-ivory font-medium max-w-[8.5rem] truncate">{me.name.replace("Capt. ", "").replace("F/O ", "")}</span>
+        <Avatar initials={me.initials} size={28} tone={me.role === "lead" ? "gold" : "navy"} />
+        <span className="text-left leading-tight hidden min-[360px]:block">
+          <span className="block text-[0.625rem] text-slate-400">Demo role</span>
+          <span className="block text-[0.8125rem] text-ivory font-semibold max-w-[8.5rem] truncate">{me.name.replace("Capt. ", "").replace("F/O ", "")}</span>
         </span>
       </button>
       <RoleSheet open={open} onClose={() => setOpen(false)} />
@@ -50,7 +50,7 @@ export function RoleSheet({ open, onClose }: { open: boolean; onClose: () => voi
                   toast.info(`Now previewing as ${c.name} · ${c.title}`);
                   onClose();
                 }}
-                className={cx("w-full flex items-center gap-3 rounded-2xl border p-3 text-left transition-colors min-h-16", active ? "border-gold/60 bg-gold/8" : "border-slate/12 bg-midnight-900/30 hover:border-slate/30")}
+                className={cx("w-full flex items-center gap-3 rounded-xl p-3 text-left transition-colors min-h-16", active ? "bg-gold/12" : "bg-navy-700 hover:bg-navy-600")}
                 data-testid={`role-${c.id}`}
               >
                 <Avatar initials={c.initials} tone={c.role === "lead" ? "gold" : "navy"} size={40} />

@@ -32,11 +32,11 @@ export function RouteLine({ flight, large }: { flight: Flight; large?: boolean }
         <div className="text-[0.6875rem] text-slate truncate">{dep?.city ?? ""}</div>
       </div>
       <div className="flex-1 flex items-center gap-1.5 text-gold/70 min-w-8" aria-hidden>
-        <span className="h-px flex-1 bg-gradient-to-r from-transparent via-gold/40 to-gold/60" />
+        <span className="h-px flex-1 bg-slate-500/35" />
         <svg viewBox="0 0 24 24" className="size-4 rotate-90 fill-gold" aria-hidden>
           <path d="M12 2c.6 0 1 .8 1 1.6V9l7 4.2v1.6L13 12.6V18l2 1.5V21l-3-.8-3 .8v-1.5L11 18v-5.4l-7 2.2v-1.6L11 9V3.6C11 2.8 11.4 2 12 2Z" />
         </svg>
-        <span className="h-px flex-1 bg-gradient-to-r from-gold/60 via-gold/40 to-transparent" />
+        <span className="h-px flex-1 bg-slate-500/35" />
       </div>
       <div className="min-w-0 text-right">
         <div className={cx("font-semibold tnum tracking-wide text-ivory", large ? "text-[1.75rem] leading-none" : "text-lg leading-tight")}>{flight.destination}</div>

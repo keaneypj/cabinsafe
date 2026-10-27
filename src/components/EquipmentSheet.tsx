@@ -207,7 +207,7 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
                         <div className="text-sm text-ivory">{d.title}</div>
                         <div className="text-xs text-slate mt-0.5">{d.detail}</div>
                         <div className="text-[0.6875rem] text-slate-500 mt-1">
-                          {d.severity.toUpperCase()} · {d.status} · {name(d.reportedById)} · {fmtRelative(d.reportedAt, now)}
+                          <span className="capitalize">{d.severity}</span> · {d.status} · {name(d.reportedById)} · {fmtRelative(d.reportedAt, now)}
                         </div>
                         {me.role === "lead" &&
                           (resolveId === d.id ? (
@@ -288,13 +288,13 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
           </div>
           <ul className="space-y-2">
             {e.checklist.map((c) => (
-              <li key={c} className="rounded-xl border border-slate/12 bg-midnight-900/30 p-3">
+              <li key={c} className="rounded-xl bg-navy-700 p-3">
                 <div className="text-sm text-ivory mb-2">{c}</div>
                 <div className="flex gap-2">
-                  <button onClick={() => setChecks((x) => ({ ...x, [c]: true }))} aria-pressed={checks[c] === true} className={cx("flex-1 min-h-10 rounded-lg border text-sm inline-flex items-center justify-center gap-1.5", checks[c] === true ? "border-ok bg-ok-bg text-ok font-semibold" : "border-slate/15 text-slate")}>
+                  <button onClick={() => setChecks((x) => ({ ...x, [c]: true }))} aria-pressed={checks[c] === true} className={cx("flex-1 min-h-10 rounded-lg border text-sm inline-flex items-center justify-center gap-1.5", checks[c] === true ? "border-ok bg-ok-bg text-ok font-semibold" : " text-slate")}>
                     <Check className="size-4" /> Pass
                   </button>
-                  <button onClick={() => setChecks((x) => ({ ...x, [c]: false }))} aria-pressed={checks[c] === false} className={cx("flex-1 min-h-10 rounded-lg border text-sm inline-flex items-center justify-center gap-1.5", checks[c] === false ? "border-bad bg-bad-bg text-bad font-semibold" : "border-slate/15 text-slate")}>
+                  <button onClick={() => setChecks((x) => ({ ...x, [c]: false }))} aria-pressed={checks[c] === false} className={cx("flex-1 min-h-10 rounded-lg border text-sm inline-flex items-center justify-center gap-1.5", checks[c] === false ? "border-bad bg-bad-bg text-bad font-semibold" : " text-slate")}>
                     <X className="size-4" /> Fail
                   </button>
                 </div>

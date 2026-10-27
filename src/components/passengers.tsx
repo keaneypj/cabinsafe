@@ -84,7 +84,7 @@ export function AddPassengerSheet({ flight, open, onClose, onAdded }: { flight: 
               </p>
               <ul className="space-y-2">
                 {result.tasks.map((t) => (
-                  <li key={t.id} className="rounded-xl border border-slate/12 bg-midnight-900/30 p-3">
+                  <li key={t.id} className="rounded-xl bg-navy-700 p-3">
                     <div className="text-sm text-ivory flex items-start gap-2">
                       <Cpu className="size-4 text-gold shrink-0 mt-0.5" />
                       {t.title}
@@ -110,7 +110,7 @@ export function AddPassengerSheet({ flight, open, onClose, onAdded }: { flight: 
             return (
               <li key={p.id}>
                 <button
-                  className="w-full flex items-center gap-3 rounded-2xl border border-slate/12 bg-midnight-900/30 p-3 text-left hover:border-gold/40 transition-colors min-h-16"
+                  className="w-full flex items-center gap-3 rounded-2xl bg-navy-700 p-3 text-left hover:border-gold/40 transition-colors min-h-16"
                   onClick={() => {
                     const res = add(flight.id, p.id);
                     if (report(res, `${p.alias} added to ${flight.callsign}`)) {

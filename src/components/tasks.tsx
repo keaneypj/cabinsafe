@@ -30,7 +30,7 @@ const SOURCE_LABEL: Record<Task["source"], string> = {
 
 export function PriorityBadge({ p }: { p: Task["priority"] }) {
   if (p === "normal") return null;
-  return <Badge tone={p === "critical" ? "bad" : "warn"}>{p === "critical" ? "CRITICAL" : "HIGH"}</Badge>;
+  return <Badge tone={p === "critical" ? "bad" : "warn"}>{p === "critical" ? "Critical" : "High"}</Badge>;
 }
 
 export function TaskRow({ task, onOpen, showFlight }: { task: Task; onOpen: (t: Task) => void; showFlight?: string }) {
@@ -42,7 +42,7 @@ export function TaskRow({ task, onOpen, showFlight }: { task: Task; onOpen: (t: 
     <button onClick={() => onOpen(task)} className="w-full text-left flex items-start gap-3 px-3.5 py-3 min-h-14 hover:bg-navy-700/30 transition-colors" data-testid={`task-${task.id}`}>
       <meta.icon className={cx("size-5 shrink-0 mt-0.5", meta.color)} aria-label={meta.label} />
       <span className="flex-1 min-w-0">
-        <span className={cx("block text-[0.875rem] leading-snug", task.status === "completed" || task.status === "not_applicable" ? "text-slate line-through decoration-slate/40" : "text-ivory")}>{task.title}</span>
+        <span className={cx("block text-[0.875rem] leading-snug", task.status === "completed" || task.status === "not_applicable" ? "text-slate-400" : "text-ivory")}>{task.title}</span>
         <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.6875rem] text-slate-400">
           <PriorityBadge p={task.priority} />
           {task.source === "passenger_rule" && (
@@ -274,7 +274,7 @@ export function TaskSheet({ taskId, onClose }: { taskId: string | null; onClose:
       )}
 
       {editing && can(me.role, "task.update.any") && (
-        <div className="rounded-xl border border-slate/12 p-3 mb-3">
+        <div className="rounded-xl p-3 mb-3">
           <Field label="Title" htmlFor="task-title">
             <input id="task-title" className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
           </Field>

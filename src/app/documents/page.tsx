@@ -18,7 +18,7 @@ export default function DocumentsPage() {
     <div>
       <PageTitle eyebrow="Reference Library" title="Documents" subtitle="Versioned sources used by the Copilot and briefings" />
       <Notice tone="warn" className="mb-4">All documents are fictional demonstration material describing program practices. They contain no approved Gulfstream or operator emergency procedures.</Notice>
-      <div className="card p-0 divide-y divide-slate/10 overflow-hidden">
+      <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden">
         {DOCUMENTS.map((d) => (
           <Link key={d.id} href={`/documents/${d.code}${d.status === "superseded" ? `?v=${d.version}` : ""}`} className="flex items-center gap-3 px-3.5 py-3 min-h-16 hover:bg-navy-700/30">
             <BookOpen className="size-5 text-gold shrink-0" />

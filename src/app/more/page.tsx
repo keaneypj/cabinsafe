@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { BookOpen, ChevronRight, ClipboardCheck, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
+import { AppearanceControl } from "@/components/Appearance";
 import { DemoIntroSheet } from "@/components/DemoCoach";
 import { RoleSheet } from "@/components/RoleSwitcher";
 import { ConfirmDialog, PageTitle, toast } from "@/components/ui";
@@ -23,7 +24,7 @@ export default function MorePage() {
     {
       title: "Operations",
       items: [
-        { href: "/preboard", icon: ClipboardCheck, label: "Pre-Boarding Checklist", sub: "Cabin attendant's final checks and crew inputs" },
+        { href: "/preboard", icon: ClipboardCheck, label: "Pre-Boarding Checklist", sub: "Everyday checks and items added by others" },
         { href: "/intel", icon: CloudLightning, label: "Risk Intelligence", sub: "Weather, security, disaster and health advisories" },
         { href: "/passengers", icon: Users, label: "Passenger Profiles", sub: "Accommodations and rules-based preparation" },
         { href: "/more/discrepancies", icon: CircleAlert, label: "Discrepancies", sub: "Postflight and inspection findings", badge: openDisc },
@@ -52,24 +53,31 @@ export default function MorePage() {
   return (
     <div>
       <PageTitle eyebrow="CabinSafe Intelligence" title="More" />
-      <div className="space-y-5">
+      <div className="space-y-6">
+        <section>
+          <div className="eyebrow mb-1.5 px-4">Appearance</div>
+          <div className="card p-3">
+            <AppearanceControl />
+          </div>
+          <p className="px-4 mt-1.5 text-[0.75rem] text-slate-500">System follows your phone&apos;s Light or Dark setting.</p>
+        </section>
         {groups.map((g) => (
           <section key={g.title}>
-            <div className="eyebrow mb-2 px-1">{g.title}</div>
-            <ul className="card p-0 divide-y divide-slate/10 overflow-hidden">
+            <div className="eyebrow mb-1.5 px-4">{g.title}</div>
+            <ul className="card p-0 divide-y divide-[var(--separator)] overflow-hidden">
               {g.items.map((it) => {
                 const inner = (
                   <>
-                    <span className="grid size-9 place-items-center rounded-xl bg-navy-600/60 text-gold shrink-0"><it.icon className="size-4.5" /></span>
+                    <span className="grid size-[1.875rem] place-items-center rounded-[0.5rem] bg-gold text-midnight shrink-0"><it.icon className="size-[1.1rem]" strokeWidth={2.2} /></span>
                     <span className="flex-1 min-w-0">
-                      <span className="block text-[0.9375rem] text-ivory">{it.label}</span>
-                      <span className="block text-xs text-slate truncate">{it.sub}</span>
+                      <span className="block text-[1rem] text-ivory leading-snug">{it.label}</span>
+                      <span className="block text-[0.75rem] text-slate-400 truncate">{it.sub}</span>
                     </span>
-                    {!!it.badge && <span className="rounded-full bg-warn-bg text-warn text-xs px-2 tnum">{it.badge}</span>}
-                    <ChevronRight className="size-4 text-slate-500" />
+                    {!!it.badge && <span className="rounded-full bg-bad text-navy text-[0.75rem] font-semibold min-w-5 h-5 px-1.5 grid place-items-center tnum">{it.badge}</span>}
+                    <ChevronRight className="size-4 text-slate-500/70" />
                   </>
                 );
-                const cls = "w-full flex items-center gap-3 px-3.5 py-3 min-h-16 text-left hover:bg-navy-700/30";
+                const cls = "w-full flex items-center gap-3 px-4 py-2.5 min-h-14 text-left active:bg-navy-700";
                 return <li key={it.label}>{it.href ? <Link href={it.href} className={cls}>{inner}</Link> : <button className={cls} onClick={it.onClick} data-testid={it.testid}>{inner}</button>}</li>;
               })}
             </ul>

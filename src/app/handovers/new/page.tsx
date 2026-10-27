@@ -87,8 +87,8 @@ function NewHandover() {
           <ul className="space-y-1.5 max-h-60 overflow-y-auto">
             {open.map((t) => (
               <li key={t.id}>
-                <label className="flex items-start gap-2.5 text-sm text-ivory rounded-lg bg-midnight-900/30 px-3 py-2 cursor-pointer">
-                  <input type="checkbox" className="size-4.5 mt-0.5 accent-[#d7bd8c]" checked={selected.includes(t.id)} onChange={(e) => setSelected((s) => (e.target.checked ? [...s, t.id] : s.filter((x) => x !== t.id)))} />
+                <label className="flex items-start gap-2.5 text-sm text-ivory rounded-lg bg-navy-700 px-3 py-2 cursor-pointer">
+                  <input type="checkbox" className="size-4.5 mt-0.5 accent-gold" checked={selected.includes(t.id)} onChange={(e) => setSelected((s) => (e.target.checked ? [...s, t.id] : s.filter((x) => x !== t.id)))} />
                   {t.title}
                 </label>
               </li>
@@ -105,7 +105,7 @@ function NewHandover() {
         <Field label="Required acknowledgements">
           <ul className="space-y-1.5">
             {acks.map((a, i) => (
-              <li key={i} className="flex items-center gap-2 rounded-lg bg-midnight-900/30 px-3 py-2 text-sm">
+              <li key={i} className="flex items-center gap-2 rounded-lg bg-navy-700 px-3 py-2 text-sm">
                 <span className="flex-1">{a}</span>
                 <button onClick={() => setAcks((x) => x.filter((_, j) => j !== i))} aria-label={`Remove ${a}`} className="text-slate-500 hover:text-bad grid size-8 place-items-center"><X className="size-4" /></button>
               </li>

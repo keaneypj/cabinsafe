@@ -244,14 +244,14 @@ export function DemoIntroSheet({ open, onClose }: { open: boolean; onClose: () =
       </p>
       <ol className="mt-4 space-y-2">
         {DEMO_STEPS.map((d, i) => (
-          <li key={d.key} className="flex items-start gap-3 rounded-xl bg-midnight-900/35 border border-slate/10 px-3 py-2.5">
+          <li key={d.key} className="flex items-start gap-3 rounded-xl bg-navy-700 px-3 py-2.5">
             <span className="grid size-6 place-items-center rounded-full bg-gold/15 text-gold text-xs font-semibold tnum shrink-0">{i + 1}</span>
             <span className="text-sm text-ivory">{d.title}</span>
           </li>
         ))}
       </ol>
-      <label className="mt-4 flex items-center gap-3 rounded-xl border border-slate/12 px-3 py-3 cursor-pointer">
-        <input type="checkbox" className="size-5 accent-[#d7bd8c]" checked={fresh} onChange={(e) => setFresh(e.target.checked)} />
+      <label className="mt-4 flex items-center gap-3 rounded-xl px-3 py-3 cursor-pointer">
+        <input type="checkbox" className="size-5 accent-gold" checked={fresh} onChange={(e) => setFresh(e.target.checked)} />
         <span className="text-sm">
           <span className="text-ivory flex items-center gap-1.5">
             <RotateCcw className="size-3.5" /> Start from the original demo state

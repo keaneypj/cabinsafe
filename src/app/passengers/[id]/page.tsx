@@ -87,7 +87,7 @@ function Passenger() {
               const M = ACC_META[a.type];
               const hide = (a.type === "medical_plan" || a.type === "medical_equipment") && !medical;
               return (
-                <li key={a.id} className="rounded-xl border border-slate/12 bg-midnight-900/30 p-3">
+                <li key={a.id} className="rounded-xl bg-navy-700 p-3">
                   <div className="flex items-center gap-2 mb-1">
                     {hide ? <Lock className="size-4 text-slate" /> : <M.icon className="size-4 text-gold" />}
                     <span className="text-sm font-semibold text-ivory">{hide ? "Restricted accommodation" : M.label}</span>
@@ -101,7 +101,7 @@ function Passenger() {
               );
             })}
             {p.dietary.length > 0 && (
-              <li className="rounded-xl border border-slate/12 bg-midnight-900/30 p-3">
+              <li className="rounded-xl bg-navy-700 p-3">
                 <div className="text-sm font-semibold text-ivory mb-1">Dietary</div>
                 <p className="text-sm text-slate">{p.dietary.join(" · ")}</p>
               </li>
@@ -177,7 +177,7 @@ function Passenger() {
         ) : generated.length === 0 ? (
           <EmptyState title="No generated tasks">No documented accommodation requires preparation on this flight.</EmptyState>
         ) : (
-          <div className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="generated-tasks">
+          <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="generated-tasks">
             {generated.map((t) => (
               <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} />
             ))}

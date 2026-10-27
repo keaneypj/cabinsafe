@@ -18,7 +18,7 @@ export default function PassengersPage() {
           ? "You are viewing as Lead Cabin Attendant: restricted medical context is visible and must not be shared beyond authorized personnel (CSI-MED-002 §4)."
           : "Medical details are restricted to the Lead Cabin Attendant. Operational summaries only."}
       </Notice>
-      <div className="card p-0 divide-y divide-slate/10 overflow-hidden mb-5">
+      <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden mb-5">
         {passengers.map((p) => (
           <PassengerRow key={p.id} p={p} href={`/passengers/${p.id}`} />
         ))}
@@ -31,7 +31,7 @@ export default function PassengersPage() {
         <p className="text-xs text-slate mb-3">Rules act only on documented records and create preparation, verification or confirmation tasks. They never infer treatment or equipment from a medical condition. Generated tasks require Lead CA review.</p>
         <ul className="space-y-2">
           {RULES_DESCRIPTION.map((r) => (
-            <li key={r.key} className="rounded-xl bg-midnight-900/35 border border-slate/10 p-3 text-xs">
+            <li key={r.key} className="rounded-xl bg-navy-700 p-3 text-xs">
               <div className="text-ivory font-medium">{r.when}</div>
               <div className="text-slate mt-0.5">→ {r.creates}</div>
             </li>

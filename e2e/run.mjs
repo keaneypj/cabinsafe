@@ -227,7 +227,7 @@ await step("Pre-boarding: PA sends an input to the cabin attendant", async () =>
   await tid("input-compose").click();
   await tid("input-text").fill("Principal requests the window blinds in Zone 1 half-closed at boarding.");
   await tid("input-send").click();
-  await page.getByText("Input sent to the cabin attendant").waitFor();
+  await page.getByText("Added to the pre-boarding checklist").waitFor();
   await tid("crew-inputs").getByText("window blinds in Zone 1").waitFor();
 });
 
@@ -254,7 +254,7 @@ await step("Pre-boarding: cabin attendant acknowledges inputs, completes checks 
 await step("12. Review the audit trail", async () => {
   await go("/audit");
   const txt = await tid("audit-list").innerText();
-  for (const s of ["Pre-boarding preparation confirmed", "Acknowledged pre-boarding input", "Handover accepted", "AED-01 inspection passed", "Acknowledged SIMULATED advisory", "Rule-generated", "Created flight CSI104"]) assert(txt.includes(s), `audit missing: ${s}`);
+  for (const s of ["Pre-boarding preparation confirmed", "Completed checklist item added by", "Handover accepted", "AED-01 inspection passed", "Acknowledged SIMULATED advisory", "Rule-generated", "Created flight CSI104"]) assert(txt.includes(s), `audit missing: ${s}`);
 });
 
 await step("13. Reset the demonstration", async () => {

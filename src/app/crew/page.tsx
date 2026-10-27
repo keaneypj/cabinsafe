@@ -40,7 +40,7 @@ function Crew() {
       <PageTitle eyebrow="Crew Coordination" title="Crew" subtitle="Assignments, queues and acknowledgements" action={<Segmented ariaLabel="View" value={tab} onChange={setTab} options={[{ value: "team", label: "Team" }, { value: "queue", label: "My queue" }]} />} />
       {tab === "queue" ? (
         myQueue.length ? (
-          <div className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="queue">
+          <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="queue">
             {myQueue.map((t) => <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} showFlight={callsign(t.flightId)} />)}
           </div>
         ) : (
@@ -75,7 +75,7 @@ function Crew() {
           </div>
           <section>
             <SectionHeader eyebrow="Tracking" title="Briefing acknowledgements" />
-            <div className="card p-0 divide-y divide-slate/10 overflow-hidden">
+            <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden">
               {briefingAcks.map((t) => <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} showFlight={callsign(t.flightId)} />)}
             </div>
           </section>

@@ -40,7 +40,7 @@ export default function AuditPage() {
       {shown.length === 0 ? (
         <EmptyState icon={<History className="size-7" />} title="No matching events" />
       ) : (
-        <ol className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="audit-list">
+        <ol className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="audit-list">
           {shown.map((e) => (
             <li key={e.id} className="px-3.5 py-3">
               <div className="flex items-start gap-2">

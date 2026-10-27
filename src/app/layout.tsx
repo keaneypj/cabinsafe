@@ -1,8 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/inter";
-import "@fontsource/cormorant-garamond/500.css";
-import "@fontsource/cormorant-garamond/600.css";
-import "@fontsource/cormorant-garamond/700.css";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 
@@ -10,7 +7,7 @@ export const metadata: Metadata = {
   title: { default: "CabinSafe Intelligence", template: "%s · CabinSafe" },
   description: "Private aviation cabin safety command center — demonstration prototype with synthetic data.",
   applicationName: "CabinSafe",
-  appleWebApp: { capable: true, title: "CabinSafe", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: "CabinSafe", statusBarStyle: "default" },
   formatDetection: { telephone: false },
   icons: {
     icon: [
@@ -23,16 +20,25 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#101D2B",
-  colorScheme: "dark",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#F2F2F0" },
+    { media: "(prefers-color-scheme: dark)", color: "#0C141D" },
+  ],
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
+const THEME_SCRIPT = `try{var t=localStorage.getItem("cabinsafe-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Apply the saved appearance before first paint to avoid a flash. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:rounded-lg focus:bg-gold focus:px-3 focus:py-2 focus:text-midnight">
           Skip to content

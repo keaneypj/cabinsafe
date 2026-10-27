@@ -30,12 +30,9 @@ export function Logo({ size = 32, className }: { size?: number; className?: stri
 
 export function Wordmark() {
   return (
-    <div className="flex items-center gap-2.5">
-      <Logo size={30} />
-      <div className="leading-none">
-        <div className="display text-[1.3rem] text-ivory tracking-wide">CabinSafe</div>
-        <div className="text-[0.5625rem] tracking-[0.32em] uppercase text-gold/85 mt-0.5">Intelligence</div>
-      </div>
+    <div className="flex items-center gap-2">
+      <Logo size={28} />
+      <span className="text-[1.0625rem] font-semibold tracking-[-0.02em] text-ivory">CabinSafe</span>
     </div>
   );
 }

@@ -26,7 +26,7 @@ describe("pre-boarding", () => {
     const v = computePreboarding(input());
     expect(v.checks).toHaveLength(8);
     expect(v.checks.every((t) => t.assigneeId === CA_SAM)).toBe(true);
-    expect(v.inputs.map((i) => i.fromRole).sort()).toEqual(["assistant", "assistant", "lead", "pilot"]);
+    expect(v.inputs.map((i) => i.fromRole).sort()).toEqual(["assistant", "lead", "pilot"]);
     expect(v.pendingAcks).toHaveLength(3);
     expect(v.passengerItems.length).toBeGreaterThan(0);
     expect(v.attention.some((a) => a.kind === "blocker" && a.label.includes("AED-01"))).toBe(true);

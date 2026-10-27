@@ -121,7 +121,7 @@ function Intel() {
         {snap && (
           <ul className="mt-3 grid gap-1.5 sm:grid-cols-2">
             {snap.sources.map((s) => (
-              <li key={s.id} className="flex items-start gap-2 rounded-lg bg-midnight-900/35 px-2.5 py-2 text-xs">
+              <li key={s.id} className="flex items-start gap-2 rounded-lg bg-navy-700 px-2.5 py-2 text-xs">
                 <span className={cx("mt-1 size-2 rounded-full shrink-0", s.status === "ok" ? "bg-ok" : s.status === "not_configured" ? "bg-slate-500" : "bg-warn")} aria-hidden />
                 <span className="flex-1 min-w-0">
                   <a href={s.url} target="_blank" rel="noreferrer noopener" className="text-ivory hover:text-gold">
@@ -196,21 +196,21 @@ function StationCard({ icao, role, snap, loading, now }: { icao: string; role: s
               ["Temp", m.tempC !== undefined ? `${m.tempC}°C` : "—"],
               ["Cat", m.flightCategory ?? "—"],
             ].map(([k, v]) => (
-              <div key={k} className="rounded-lg bg-midnight-900/40 py-2 px-1">
+              <div key={k} className="rounded-lg bg-navy-700 py-2 px-1">
                 <div className="text-[0.5625rem] uppercase tracking-wider text-slate-500">{k}</div>
                 <div className="text-xs text-ivory tnum mt-0.5">{v}</div>
               </div>
             ))}
           </div>
           {m.weather && <div className="text-xs text-warn mt-2">Significant weather: {m.weather}</div>}
-          <code className="block mt-2 text-[0.6875rem] text-slate bg-midnight-900/50 rounded-lg p-2 break-words">{m.raw}</code>
+          <code className="block mt-2 text-[0.6875rem] text-slate bg-navy-700 rounded-lg p-2 break-words">{m.raw}</code>
           <div className="text-[0.625rem] text-slate-500 mt-1">
             Observed {fmtUtc(m.observedAt)} ({fmtRelative(m.observedAt, now)}) · retrieved {fmtUtc(snap!.retrievedAt)}
           </div>
           {t ? (
             <details className="mt-2">
               <summary className="text-xs text-gold cursor-pointer min-h-8 flex items-center">TAF · valid {fmtUtc(t.validFrom)} – {fmtUtc(t.validTo)}</summary>
-              <code className="block mt-1 text-[0.6875rem] text-slate bg-midnight-900/50 rounded-lg p-2 break-words whitespace-pre-wrap">{t.raw}</code>
+              <code className="block mt-1 text-[0.6875rem] text-slate bg-navy-700 rounded-lg p-2 break-words whitespace-pre-wrap">{t.raw}</code>
               <div className="text-[0.625rem] text-slate-500 mt-1">Issued {fmtUtc(t.issuedAt)}</div>
             </details>
           ) : (
@@ -260,7 +260,7 @@ function AdvisoryCard({ a, flight, defaultOpen }: { a: Advisory; flight: Flight;
         <span className="flex-1 min-w-0">
           <span className="flex flex-wrap gap-1.5 mb-1">
             {a.origin === "simulated" ? <SimulatedBadge /> : <Badge tone="info">LIVE</Badge>}
-            <Badge tone={sevTone}>{a.severity.toUpperCase()}</Badge>
+            <Badge tone={sevTone}><span className="capitalize">{a.severity}</span></Badge>
             <Badge tone="neutral">{CAT_LABEL[a.category]}</Badge>
             {isAcked(acks, a.id, flight.id) && (
               <Badge tone="ok" icon={<Check className="size-3" />}>
@@ -322,9 +322,9 @@ function AdvisoryCard({ a, flight, defaultOpen }: { a: Advisory; flight: Flight;
               )}
             </div>
           ) : can(me.role, "advisory.ack") ? (
-            <div className="mt-3 rounded-xl border border-slate/12 p-3">
+            <div className="mt-3 rounded-xl p-3">
               <label className="flex items-center gap-2.5 text-sm text-ivory cursor-pointer min-h-9">
-                <input type="checkbox" className="size-5 accent-[#d7bd8c]" checked={withTask} onChange={(e) => setWithTask(e.target.checked)} data-testid="adv-create-task" />
+                <input type="checkbox" className="size-5 accent-gold" checked={withTask} onChange={(e) => setWithTask(e.target.checked)} data-testid="adv-create-task" />
                 Create a cabin preparation task
               </label>
               <Button

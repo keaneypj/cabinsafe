@@ -31,7 +31,7 @@ export const CATEGORY_LABELS: Record<ChecklistCategory, string> = {
   postflight_discrepancy: "Postflight Discrepancies",
   restock: "Restocking & Follow-up",
   coordination: "Coordination",
-  preboarding: "Pre-Boarding Checks",
+  preboarding: "Pre-Boarding · Everyday Checks",
 };
 
 export const PREFLIGHT_ORDER: ChecklistCategory[] = [

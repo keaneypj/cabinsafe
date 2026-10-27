@@ -27,7 +27,7 @@ import type {
 import { uid } from "@/lib/format";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 5;
+const SCHEMA_VERSION = 6;
 
 export type Result<T = undefined> = { ok: true; value?: T } | { ok: false; error: string };
 
@@ -507,9 +507,10 @@ export const useStore = create<Store>()(
           if (!flight) return { ok: false, error: "Flight not found." };
           if (flight.status === "completed") return { ok: false, error: "This flight is already completed." };
           const u = me();
-          const item: CrewInput = { ...input, text, id: uid("inp"), fromId: u.id, fromRole: u.role, createdAt: new Date().toISOString(), acks: [] };
+          // Every item added by others is a checklist item the cabin attendant must complete.
+          const item: CrewInput = { ...input, requiresAck: true, text, id: uid("inp"), fromId: u.id, fromRole: u.role, createdAt: new Date().toISOString(), acks: [] };
           set((s) => ({ crewInputs: [item, ...s.crewInputs] }));
-          pushAudit(audit("input.create", "crew_input", item.id, `Pre-boarding input to cabin attendant (${input.priority}): ${text.slice(0, 80)}${text.length > 80 ? "…" : ""}`, flight.id));
+          pushAudit(audit("input.create", "crew_input", item.id, `Added to pre-boarding checklist (${input.priority}): ${text.slice(0, 80)}${text.length > 80 ? "…" : ""}`, flight.id));
           return { ok: true, value: item };
         },
 
@@ -518,12 +519,12 @@ export const useStore = create<Store>()(
           if (!item) return { ok: false, error: "Input not found." };
           const flight = get().flights.find((f) => f.id === item.flightId);
           const u = me();
-          if (!flight || !(u.id === flight.cabinAttendantId || u.role === "lead")) return { ok: false, error: "Only the flight's cabin attendant or the Lead Cabin Attendant can acknowledge pre-boarding inputs." };
-          if (item.acks.some((a) => a.byId === u.id)) return { ok: false, error: "Already acknowledged." };
+          if (!flight || !(u.id === flight.cabinAttendantId || u.role === "lead")) return { ok: false, error: "Only the flight's cabin attendant or the Lead Cabin Attendant can complete this item." };
+          if (item.acks.length) return { ok: false, error: "Already completed." };
           const at = new Date().toISOString();
           set((s) => ({ crewInputs: s.crewInputs.map((i) => (i.id === inputId ? { ...i, acks: [...i.acks, { byId: u.id, at }] } : i)) }));
           const from = get().crew.find((c) => c.id === item.fromId)?.name ?? "crew";
-          pushAudit(audit("input.acknowledge", "crew_input", inputId, `Acknowledged pre-boarding input from ${from}`, item.flightId));
+          pushAudit(audit("input.acknowledge", "crew_input", inputId, `Completed checklist item added by ${from}`, item.flightId));
           return { ok: true };
         },
 

@@ -123,7 +123,7 @@ export default function HandoverPage() {
 
       <Card>
         <SectionHeader eyebrow="Transfers ownership, not resolution" title={`Open safety items (${items.length})`} />
-        <ul className="divide-y divide-slate/10 -mx-1">
+        <ul className="divide-y divide-[var(--separator)] -mx-1">
           {items.map((t) => {
             const M = STATUS_META[t!.status];
             return (
@@ -171,7 +171,7 @@ export default function HandoverPage() {
               <button
                 onClick={() => report(store.acknowledgeHandoverItem(h.id, a.id))}
                 disabled={h.status === "accepted"}
-                className={cx("w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left min-h-12 transition-colors", a.ackedAt ? "border-ok/30 bg-ok-bg/40" : "border-slate/15 bg-midnight-900/30", !isIncoming && "opacity-80")}
+                className={cx("w-full flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left min-h-12 transition-colors", a.ackedAt ? "border-ok/30 bg-ok-bg/40" : " bg-navy-700", !isIncoming && "opacity-80")}
                 aria-pressed={!!a.ackedAt}
                 data-testid={`ack-${a.id}`}
               >

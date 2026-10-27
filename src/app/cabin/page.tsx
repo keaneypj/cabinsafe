@@ -59,7 +59,7 @@ function Cabin() {
 
   return (
     <div>
-      <PageTitle eyebrow={`${AIRCRAFT.tail} · ${AIRCRAFT.year} G700 · conceptual`} title="Cabin Safety Map" subtitle="Five living zones · tap any marker to open its equipment record" action={<Segmented ariaLabel="View" value={view} onChange={setView} options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }]} />} />
+      <PageTitle eyebrow={`${AIRCRAFT.tail} · ${AIRCRAFT.year} G700 · conceptual`} title="Cabin Safety Map" subtitle="Five living zones · tap any marker to open its equipment record" action={<div className="w-40"><Segmented ariaLabel="View" value={view} onChange={setView} options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }]} /></div>} />
       <VerifyNotice className="mb-3" />
 
       <div className="scroll-x -mx-4 px-4 mb-3">
@@ -104,7 +104,7 @@ function Cabin() {
           </div>
         </div>
       ) : (
-        <div className="card p-0 divide-y divide-slate/10 overflow-hidden" data-testid="equipment-list">
+        <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="equipment-list">
           {list.map((e) => {
             const st = STATUS_STYLE[statusOf(e)];
             const Icon = CATEGORY_META[e.category].icon;

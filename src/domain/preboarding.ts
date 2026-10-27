@@ -107,7 +107,7 @@ export function computePreboarding(input: PreboardInput): PreboardView {
   const signoffBlockers: string[] = [];
   const openChecks = checks.length - doneChecks;
   if (openChecks) signoffBlockers.push(`${openChecks} pre-boarding check${openChecks > 1 ? "s" : ""} not complete`);
-  if (pendingAcks.length) signoffBlockers.push(`${pendingAcks.length} crew input${pendingAcks.length > 1 ? "s" : ""} awaiting acknowledgement`);
+  if (pendingAcks.length) signoffBlockers.push(`${pendingAcks.length} item${pendingAcks.length > 1 ? "s" : ""} added by others not complete`);
   if (readiness.blockers.length) signoffBlockers.push(`${readiness.blockers.length} critical blocker${readiness.blockers.length > 1 ? "s" : ""} unresolved`);
   const signoff = input.signoffs.filter((s) => s.flightId === flight.id).sort((a, b) => b.at.localeCompare(a.at))[0];
 

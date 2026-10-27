@@ -122,7 +122,7 @@ function Copilot() {
     <div>
       <PageTitle eyebrow="AI Safety Copilot" title="Safety Copilot" subtitle="Answers grounded in current flight records and cited reference documents" />
 
-      <div className="flex flex-wrap items-center gap-2 mb-3" data-testid="copilot-mode">
+      <div className="mb-4" data-testid="copilot-mode">
         {mode === "checking" ? (
           <Badge tone="neutral">Checking AI service…</Badge>
         ) : mode === "live" ? (
@@ -130,19 +130,16 @@ function Copilot() {
             Live AI · {model}
           </Badge>
         ) : (
-          <Badge tone="sim" icon={<FlaskConical className="size-3" />}>
-            Demonstration Assistant · deterministic · not live AI
-          </Badge>
+          <>
+            <Badge tone="sim" icon={<FlaskConical className="size-3" />}>
+              Demonstration Assistant · not live AI
+            </Badge>
+            <p className="text-[0.75rem] text-slate-400 mt-1.5 px-0.5">
+              Rules-based answers from live app records and the approved document library. Set <code className="font-mono">ANTHROPIC_API_KEY</code> on the server for live AI.
+            </p>
+          </>
         )}
-        <Badge tone="neutral" icon={<BookOpen className="size-3" />}>
-          Retrieval from approved demo library
-        </Badge>
       </div>
-      {mode === "demo" && (
-        <Notice tone="sim" className="mb-4">
-          No AI service is configured on this deployment, so answers come from a rules-based demonstration assistant that reads the live application records and the approved document library. It is not a language model. Set <code>ANTHROPIC_API_KEY</code> on the server to enable live AI.
-        </Notice>
-      )}
 
       <div className="scroll-x -mx-4 px-4 mb-3">
         <div className="flex gap-1.5 w-max">
@@ -154,7 +151,7 @@ function Copilot() {
         </div>
       </div>
 
-      <Card className="mb-4 border-gold/25 bg-gradient-to-br from-gold/10 via-navy/50 to-navy/30">
+      <Card className="mb-4">
         <div className="flex items-start gap-3">
           <span className="grid size-11 place-items-center rounded-full bg-gold/15 text-gold shrink-0">
             <FileText className="size-5" />
@@ -197,7 +194,7 @@ function Copilot() {
                 <span className="grid size-7 place-items-center rounded-full bg-navy-600 text-gold shrink-0 mt-0.5">
                   <Bot className="size-4" />
                 </span>
-                <div className="flex-1 min-w-0 rounded-2xl rounded-tl-md bg-midnight-900/50 border border-slate/10 px-3.5 py-2.5">
+                <div className="flex-1 min-w-0 rounded-2xl rounded-tl-md bg-navy-700 px-3.5 py-2.5">
                   {m.pending ? (
                     <div className="flex gap-1 py-1.5" aria-label="Thinking">
                       {[0, 1, 2].map((i) => (
@@ -227,7 +224,7 @@ function Copilot() {
           <div className="scroll-x -mx-3 px-3 mb-2">
             <div className="flex gap-1.5 w-max">
               {SUGGESTED_PROMPTS.map((p) => (
-                <button key={p} onClick={() => ask(p)} className="shrink-0 rounded-full border border-slate/15 px-3 min-h-9 text-xs text-slate hover:text-ivory hover:border-gold/40" disabled={busy}>
+                <button key={p} onClick={() => ask(p)} className="shrink-0 rounded-full px-3 min-h-9 text-xs text-slate hover:text-ivory hover:border-gold/40" disabled={busy}>
                   {p}
                 </button>
               ))}
