@@ -292,7 +292,7 @@ function ManifestTab({ flightId }: { flightId: string }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <div className="text-sm text-slate">
-          <Users className="inline size-4 mr-1" /> {pax.length} on manifest · aliases only
+          <Users className="inline size-4 mr-1" /> {pax.length} on manifest · first names only
         </div>
         {editable && (
           <Button size="sm" variant="secondary" onClick={() => setAdding(true)} data-testid="add-passenger">

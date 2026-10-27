@@ -42,73 +42,73 @@ export const CREW: CrewMember[] = [
 
 export const PASSENGERS: Passenger[] = [
   {
-    id: "pax-atlas", alias: "ATLAS", displayName: "Principal", relationship: "Principal · Aircraft owner", category: "principal", initials: "AT",
+    id: "pax-principal", alias: "Principal", displayName: "Principal", relationship: "Aircraft owner", category: "principal", initials: "PR",
     accommodations: [
-      { id: "acc-atlas-1", type: "comfort", summary: "Quiet, uninterrupted cabin during work periods; service on request only. Health-conscious menu with an occasional indulgent snack; wine selection per principal's cellar list.", documentation: "documented" },
+      { id: "acc-principal-1", type: "comfort", summary: "Quiet, uninterrupted cabin during work periods; service on request only. Health-conscious menu with an occasional indulgent snack; wine selection per principal's cellar list.", documentation: "documented" },
     ],
     dietary: ["Health-conscious menu; light meals preferred"],
     preferences: ["Still water, room temperature", "Burgundy and Napa reds from cellar list", "Dark chocolate after dinner service"],
-    emergencyPlanRef: "EP-ATLAS-01",
+    emergencyPlanRef: "EP-PRINCIPAL-01",
     restrictedNotes: "Discretion: no names in FBO or catering communications. Alias only.",
   },
   {
-    id: "pax-aurora", alias: "AURORA", displayName: "Spouse of the Principal", relationship: "Spouse", category: "family", initials: "AU",
+    id: "pax-jennifer", alias: "Jennifer", displayName: "Spouse of the Principal", relationship: "Spouse", category: "family", initials: "JE",
     accommodations: [],
     dietary: ["Pescatarian"],
     preferences: ["Herbal tea service", "Blanket and eye mask on overnight sectors"],
-    emergencyPlanRef: "EP-AURORA-01",
+    emergencyPlanRef: "EP-JENNIFER-01",
   },
   {
-    id: "pax-orion", alias: "ORION", displayName: "Adult son", relationship: "Adult child", category: "family", initials: "OR",
+    id: "pax-michael", alias: "Michael", displayName: "Adult son", relationship: "Adult child", category: "family", initials: "MI",
     accommodations: [
-      { id: "acc-orion-1", type: "allergy", summary: "Peanut allergy precaution. Cross-contact prevention required for all catering and open-service snacks.", documentation: "documented", planRef: "EP-ORION-01", allergen: "peanut" },
+      { id: "acc-michael-1", type: "allergy", summary: "Peanut allergy precaution. Cross-contact prevention required for all catering and open-service snacks.", documentation: "documented", planRef: "EP-MICHAEL-01", allergen: "peanut" },
     ],
     dietary: [],
     preferences: ["Sparkling water", "Late breakfast service"],
-    emergencyPlanRef: "EP-ORION-01",
-    restrictedMedical: "Synthetic record: peanut allergy, historically mild reactions that can flare. Individual emergency plan EP-ORION-01 held by the family physician; passenger carries own prescribed items per plan.",
+    emergencyPlanRef: "EP-MICHAEL-01",
+    restrictedMedical: "Synthetic record: peanut allergy, historically mild reactions that can flare. Individual emergency plan EP-MICHAEL-01 held by the family physician; passenger carries own prescribed items per plan.",
   },
   {
-    id: "pax-lyra", alias: "LYRA", displayName: "Adult daughter", relationship: "Adult child", category: "family", initials: "LY",
+    id: "pax-emily", alias: "Emily", displayName: "Adult daughter", relationship: "Adult child", category: "family", initials: "EM",
     accommodations: [],
     dietary: ["Vegetarian"],
     preferences: ["Oat milk", "Window seat"],
-    emergencyPlanRef: "EP-LYRA-01",
+    emergencyPlanRef: "EP-EMILY-01",
   },
   {
-    id: "pax-rebecca", alias: "REBECCA", displayName: "Mother of the Principal", relationship: "Parent · senior family member", category: "family", initials: "RB",
+    id: "pax-rebecca", alias: "Rebecca", displayName: "Mother of the Principal", relationship: "Parent · senior family member", category: "family", initials: "RE",
     accommodations: [
-      { id: "acc-rebecca-1", type: "mobility", summary: "Unhurried boarding with airstair assistance offered; seat close to forward lavatory.", documentation: "documented", planRef: "MAP-REBECCA-02" },
+      { id: "acc-rebecca-1", type: "mobility", summary: "Unhurried boarding with airstair assistance offered; seat close to forward lavatory.", documentation: "documented", planRef: "MAP-Rebecca-02" },
       { id: "acc-rebecca-2", type: "medical_equipment", summary: "May travel with personal medical equipment. Requirements to be confirmed with her representative before each flight.", documentation: "pending_confirmation" },
-      { id: "acc-rebecca-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-REBECCA-01" },
+      { id: "acc-rebecca-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-Rebecca-01" },
     ],
     dietary: ["Low-sodium meals"],
     preferences: ["Warm cabin temperature", "Reading light and large-print menu"],
-    emergencyPlanRef: "ICP-REBECCA-01",
+    emergencyPlanRef: "ICP-Rebecca-01",
     restrictedMedical: "Synthetic record: chronic obstructive pulmonary disease (COPD). Care decisions rest with the passenger and her physician. Escalation per CSI-MED-002 §2.",
   },
   {
-    id: "pax-cedar", alias: "CEDAR", displayName: "Father of the Spouse", relationship: "Parent · senior family member", category: "family", initials: "CE",
+    id: "pax-robert", alias: "Robert", displayName: "Father of the Spouse", relationship: "Parent · senior family member", category: "family", initials: "RO",
     accommodations: [
-      { id: "acc-cedar-1", type: "mobility", summary: "Boarding assistance; seat with firm armrest support; allow additional time for transitions.", documentation: "documented", planRef: "MAP-CEDAR-01" },
-      { id: "acc-cedar-2", type: "comfort", summary: "Documented preference for quiet, unhurried service and meals served on his requested schedule.", documentation: "documented" },
-      { id: "acc-cedar-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-CEDAR-01" },
+      { id: "acc-robert-1", type: "mobility", summary: "Boarding assistance; seat with firm armrest support; allow additional time for transitions.", documentation: "documented", planRef: "MAP-ROBERT-01" },
+      { id: "acc-robert-2", type: "comfort", summary: "Documented preference for quiet, unhurried service and meals served on his requested schedule.", documentation: "documented" },
+      { id: "acc-robert-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-ROBERT-01" },
     ],
     dietary: ["Soft-texture options available on request"],
     preferences: ["Weighted cutlery available on request", "Aisle-access seat"],
-    emergencyPlanRef: "ICP-CEDAR-01",
+    emergencyPlanRef: "ICP-ROBERT-01",
     restrictedMedical: "Synthetic record: early-stage Parkinson's disease. Accommodations limited to documented mobility and service preferences.",
   },
   {
-    id: "pax-meridian", alias: "MERIDIAN", displayName: "Frequent guest", relationship: "Family friend · frequent guest", category: "guest", initials: "ME",
+    id: "pax-david", alias: "David", displayName: "Frequent guest", relationship: "Family friend · frequent guest", category: "guest", initials: "DA",
     accommodations: [],
     dietary: ["Gluten-free"],
     preferences: ["Espresso, no sugar"],
-    emergencyPlanRef: "EP-MERIDIAN-01",
+    emergencyPlanRef: "EP-DAVID-01",
     restrictedNotes: "Guest of the principal. Do not share itinerary details with guest's office.",
   },
   {
-    id: "pax-copper", alias: "COPPER", displayName: "Family Vizsla", relationship: "Family dog", category: "pet", initials: "CO",
+    id: "pax-copper", alias: "Copper", displayName: "Family Vizsla", relationship: "Family dog", category: "pet", initials: "CO",
     accommodations: [
       { id: "acc-copper-1", type: "pet", summary: "Vizsla, 25 kg. Travels in cabin with family; restraint for taxi, take-off and landing per operator policy.", documentation: "documented" },
     ],
@@ -174,26 +174,26 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     {
       id: "flt-csi100", callsign: "CSI100", aircraftId: "ac-demo-700", departure: "KTEB", destination: "KMIA", alternates: ["KFLL"],
       departAt: iso(f100Depart), arriveAt: iso(f100Depart + 2.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_CLAIRE,
-      pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID], manifest: ["pax-atlas", "pax-aurora", "pax-meridian"], status: "completed",
+      pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID], manifest: ["pax-principal", "pax-jennifer", "pax-david"], status: "completed",
       notes: "Positioning sector with principal. Completed.",
     },
     {
       id: FEATURED_FLIGHT_ID, callsign: "CSI101", aircraftId: "ac-demo-700", departure: "KMIA", destination: "LSGG", alternates: ["LSZH", "LFLL"],
       departAt: iso(f101Depart), arriveAt: iso(f101Depart + 8.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
-      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-rebecca", "pax-cedar", "pax-meridian", "pax-copper"], status: "scheduled",
+      manifest: ["pax-principal", "pax-jennifer", "pax-michael", "pax-rebecca", "pax-robert", "pax-david", "pax-copper"], status: "scheduled",
       notes: "Overnight transatlantic. Family travel with senior family members and guest.",
     },
     {
       id: "flt-csi102", callsign: "CSI102", aircraftId: "ac-demo-700", departure: "LSGG", destination: "EGLF", alternates: ["EGKK", "EGLL"],
       departAt: iso(f102Depart), arriveAt: iso(f102Depart + 1.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_CLAIRE,
-      pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID], manifest: ["pax-atlas", "pax-aurora", "pax-lyra", "pax-copper"], status: "scheduled",
+      pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID], manifest: ["pax-principal", "pax-jennifer", "pax-emily", "pax-copper"], status: "scheduled",
     },
     {
       id: "flt-csi103", callsign: "CSI103", aircraftId: "ac-demo-700", departure: "EGLF", destination: "KPBI", alternates: ["KFLL", "KMIA"],
       departAt: iso(f103Depart), arriveAt: iso(f103Depart + 9.5 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
-      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-lyra", "pax-rebecca", "pax-cedar", "pax-copper"], status: "planning",
+      manifest: ["pax-principal", "pax-jennifer", "pax-michael", "pax-emily", "pax-rebecca", "pax-robert", "pax-copper"], status: "planning",
     },
   ];
 
@@ -253,8 +253,8 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
   // Generated tasks for CSI101: some reviewed / done
   const g = (pid: string, rule: string) => `gen:${FEATURED_FLIGHT_ID}:${pid}:${rule}`;
   patch(g("pax-rebecca", "acc-rebecca-1:boarding"), { reviewed: true });
-  patch(g("pax-orion", "acc-orion-1:ingredients"), { reviewed: true, status: "in_progress", notes: "Written caterer confirmation requested." });
-  done(g("pax-meridian", "dietary"), LEAD_ID, 8, { reviewed: true });
+  patch(g("pax-michael", "acc-michael-1:ingredients"), { reviewed: true, status: "in_progress", notes: "Written caterer confirmation requested." });
+  done(g("pax-david", "dietary"), LEAD_ID, 8, { reviewed: true });
   done(g("pax-copper", "acc-copper-1:docs"), PA_ID, 30, { reviewed: true, notes: "PA confirmed via official Swiss government guidance. Certificate copy held by PA." });
 
   // ── Equipment ──
@@ -339,7 +339,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
       status: "submitted",
       openTaskIds: [c("cat-reconcile"), c("med-tele"), c("eme-flash"), checklistTaskId("flt-csi100", "pf-restock")],
       equipmentSummary: "AED-01 daily inspection due before CSI101. FAK-02 dressings restock pending (minor). FL-03 charge indicator amber, on charge (minor). O2-02 inspection due within 24 h.",
-      accommodationSummary: "REBECCA and CEDAR: documented boarding assistance. ORION: peanut precaution — cross-contact controls apply. COPPER travelling; restraint for taxi/take-off/landing. Medical details restricted to Lead CA.",
+      accommodationSummary: "Rebecca and Robert: documented boarding assistance. Michael: peanut precaution — cross-contact controls apply. Copper travelling; restraint for taxi/take-off/landing. Medical details restricted to Lead CA.",
       acknowledgements: [
         { id: "ack-1", label: "Reviewed open safety items" },
         { id: "ack-2", label: "Reviewed equipment status and discrepancies" },
@@ -352,7 +352,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
 
   // ── Audit history ──
   const audit: AuditEvent[] = [
-    { id: "aud-1", at: iso(now - 30 * H), actorId: PA_ID, actorRole: "assistant", action: "task.complete", entity: "task", entityId: g("pax-copper", "acc-copper-1:docs"), flightId: FEATURED_FLIGHT_ID, summary: "Confirmed animal entry documentation for Switzerland — COPPER" },
+    { id: "aud-1", at: iso(now - 30 * H), actorId: PA_ID, actorRole: "assistant", action: "task.complete", entity: "task", entityId: g("pax-copper", "acc-copper-1:docs"), flightId: FEATURED_FLIGHT_ID, summary: "Confirmed animal entry documentation for Switzerland — Copper" },
     { id: "aud-2", at: iso(now - 27 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "discrepancy.create", entity: "discrepancy", entityId: "dsc-fak02", flightId: "flt-csi100", summary: "Postflight discrepancy: FAK-02 adhesive dressings used — restock required" },
     { id: "aud-3", at: iso(now - 27 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "discrepancy.create", entity: "discrepancy", entityId: "dsc-fl03", flightId: "flt-csi100", summary: "Postflight discrepancy: FL-03 charge indicator amber" },
     { id: "aud-4", at: iso(now - 26 * H), actorId: LEAD_ID, actorRole: "lead", action: "discrepancy.update", entity: "discrepancy", entityId: "dsc-light", flightId: "flt-csi100", summary: "Deferred: Seat D3 reading light intermittent (reported to flight crew)" },
@@ -371,7 +371,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     },
     {
       id: "inp-pic-1", flightId: FEATURED_FLIGHT_ID, fromId: PIC_ID, fromRole: "pilot", category: "safety", priority: "important", requiresAck: true, createdAt: iso(now - 90 * 60_000), acks: [],
-      text: "Expect moderate turbulence on descent into Geneva. Plan to complete service 45 minutes before top of descent; I will call 'cabin secure' 20 minutes prior. Brief REBECCA and CEDAR on early seat-belt use at boarding.",
+      text: "Expect moderate turbulence on descent into Geneva. Plan to complete service 45 minutes before top of descent; I will call 'cabin secure' 20 minutes prior. Brief Rebecca and Robert on early seat-belt use at boarding.",
     },
     {
       id: "inp-pa-1", flightId: FEATURED_FLIGHT_ID, fromId: PA_ID, fromRole: "assistant", category: "timing", priority: "important", requiresAck: true, createdAt: iso(now - 70 * 60_000), acks: [],

@@ -203,7 +203,7 @@ function equipmentSummary(q: string, ctx: FlightContext): CopilotAnswer {
 function passengerSummary(ctx: FlightContext): CopilotAnswer {
   const pax = manifestOf(ctx);
   const medical = canSeeMedical(ctx);
-  const lines = [`**Manifest for ${ctx.flight.callsign}: ${pax.length} (aliases only)**`, ""];
+  const lines = [`**Manifest for ${ctx.flight.callsign}: ${pax.length} (first names only)**`, ""];
   for (const p of pax) {
     const acc = p.accommodations.map((a) => `${a.summary}${a.planRef ? ` [${a.planRef}]` : ""}${a.documentation === "pending_confirmation" ? " _(pending confirmation)_" : ""}`);
     lines.push(`**${p.alias}** — ${p.relationship}`);

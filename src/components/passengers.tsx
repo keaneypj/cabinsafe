@@ -51,7 +51,7 @@ export function PassengerRow({ p, href, trailing }: { p: Passenger; href: string
         <Avatar initials={p.initials} tone={p.category === "principal" ? "gold" : "navy"} size={40} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
-            <span className="font-semibold tracking-wider text-ivory">{p.alias}</span>
+            <span className="font-semibold text-ivory">{p.alias}</span>
             {p.category === "pet" && <PawPrint className="size-3.5 text-gold" aria-label="Animal" />}
           </span>
           <span className="block text-xs text-slate truncate mb-1">{p.relationship}</span>
@@ -74,7 +74,7 @@ export function AddPassengerSheet({ flight, open, onClose, onAdded }: { flight: 
     onClose();
   };
   return (
-    <Sheet open={open} onClose={close} title={result ? `${result.alias} added to ${flight.callsign}` : `Add passenger to ${flight.callsign}`} subtitle={result ? "Rules engine generated preparation tasks" : "Aliases only · synthetic profiles"}>
+    <Sheet open={open} onClose={close} title={result ? `${result.alias} added to ${flight.callsign}` : `Add passenger to ${flight.callsign}`} subtitle={result ? "Rules engine generated preparation tasks" : "First names only · synthetic profiles"}>
       {result ? (
         <div data-testid="generated-result">
           {result.tasks.length ? (
@@ -122,7 +122,7 @@ export function AddPassengerSheet({ flight, open, onClose, onAdded }: { flight: 
                 >
                   <Avatar initials={p.initials} size={38} />
                   <span className="flex-1 min-w-0">
-                    <span className="block font-semibold tracking-wider">{p.alias}</span>
+                    <span className="block font-semibold">{p.alias}</span>
                     <span className="block text-xs text-slate">{p.relationship}</span>
                     <span className={cx("block text-[0.6875rem] mt-0.5", specs.length ? "text-gold" : "text-slate-500")}>{specs.length ? `Will generate ${specs.length} preparation task${specs.length > 1 ? "s" : ""}` : "No rule-based tasks"}</span>
                   </span>
