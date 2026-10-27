@@ -11,7 +11,7 @@ import { Logo } from "./Logo";
  * (or on demand via /?intro=1, e.g. More → Replay Intro).
  *
  *   Scene 1  A private jet crosses the screen; "CabinSafe" fades in and out.
- *   Scene 2  "Custom App created by Kate Keaney for Brian Smith at Aviation Recruiting".
+ *   Scene 2  "Custom App created by Kate Keaney for Kevin Carnes at Aviation Search Group".
  *   Scene 3  Kate Keaney and her three pillars, with the next step.
  *
  * Always rendered in the dark cinematic palette, independent of the app theme.
@@ -176,10 +176,12 @@ export function Intro({ onDone }: { onDone: () => void }) {
         <div className={scene === 1 ? "intro-rise" : ""}>
           <div className="text-[0.8125rem] font-medium uppercase tracking-[0.22em] text-[#d7bd8c]">Custom App</div>
           <p className="mt-4 text-[1.625rem] font-semibold leading-snug tracking-[-0.02em]">
-            created by <span className="text-[#d7bd8c]">Kate Keaney</span>
+            created by <span className="whitespace-nowrap text-[#d7bd8c]">Kate Keaney</span>
           </p>
-          <p className="mt-2 text-[1.0625rem] text-white/70">
-            for Brian Smith at Aviation Recruiting
+          <p className="mt-3 text-[1.0625rem] leading-snug text-white/70">
+            for <span className="whitespace-nowrap text-white/90">Kevin Carnes</span>
+            <br />
+            <span className="whitespace-nowrap">at Aviation Search Group</span>
           </p>
         </div>
       </div>

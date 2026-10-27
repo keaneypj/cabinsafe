@@ -66,7 +66,7 @@ await step("Opening sequence plays on first visit and hands off to the tour", as
   await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await p.getByTestId("intro").waitFor();
   const text = await p.getByTestId("intro").innerText();
-  for (const s of ["CabinSafe", "Kate Keaney", "Brian Smith at Aviation Recruiting", "Cabin Attendant Subject Matter Expert", "Professionalism and Discretion", "today's jets"]) assert(text.includes(s), `intro missing: ${s}`);
+  for (const s of ["CabinSafe", "Kate Keaney", "Kevin Carnes", "Aviation Search Group", "Cabin Attendant Subject Matter Expert", "Professionalism and Discretion", "today's jets"]) assert(text.includes(s), `intro missing: ${s}`);
   await p.getByTestId("intro-tour").waitFor({ state: "visible", timeout: 15000 });
   await p.screenshot({ path: `${OUT}00-intro.png` });
   await p.getByTestId("intro-tour").click();

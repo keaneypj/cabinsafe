@@ -2,7 +2,7 @@
 
 Open the link on your phone. For the best experience, tap **Share → Add to Home Screen** (iPhone) or **Install app** (Android), then launch it from the icon.
 
-**Opening (about 10 seconds):** a private jet crosses the screen as *CabinSafe* fades in and out. Next comes the dedication, *Custom App created by Kate Keaney for Brian Smith at Aviation Recruiting*, and then Kate's introduction and three pillars. Tap **Take the 5-minute tour** to start the guided demonstration, or **Explore on my own**. *Skip* is available throughout, and **More → Replay Intro** plays it again.
+**Opening (about 10 seconds):** a private jet crosses the screen as *CabinSafe* fades in and out. Next comes the dedication, *Custom App created by Kate Keaney for Kevin Carnes at Aviation Search Group*, and then Kate's introduction and three pillars. Tap **Take the 5-minute tour** to start the guided demonstration, or **Explore on my own**. *Skip* is available throughout, and **More → Replay Intro** plays it again.
 
 Otherwise, on the home screen, tap **Experience CabinSafe** and keep "Start from the original demo state" selected. A guide card at the bottom tracks your progress (Step x of 6). You can collapse it, go back, skip a step or exit at any time.
 
