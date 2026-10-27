@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookOpen, ChevronRight, ClipboardCheck, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
+import { BookOpen, ChevronRight, ClipboardCheck, Film, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
 import { AppearanceControl } from "@/components/Appearance";
 import { DemoIntroSheet } from "@/components/DemoCoach";
 import { RoleSheet } from "@/components/RoleSwitcher";
@@ -45,6 +45,7 @@ export default function MorePage() {
         { onClick: () => setIntro(true), icon: Play, label: "Experience CabinSafe", sub: "Guided five-minute demonstration", testid: "more-experience" },
         { onClick: () => setRoles(true), icon: Repeat, label: "Demo Role Preview", sub: `Viewing as ${me.name} · ${me.title}` },
         { onClick: () => setConfirm(true), icon: RotateCcw, label: "Reset Demo", sub: "Restore the original seeded state", testid: "reset-demo" },
+        { onClick: () => router.push("/?intro=1"), icon: Film, label: "Replay Intro", sub: "The opening sequence" },
         { href: "/about", icon: Info, label: "About & Limitations", sub: "What is functional, simulated, or awaiting integration" },
       ],
     },

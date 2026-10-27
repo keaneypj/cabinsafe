@@ -320,6 +320,47 @@ html[data-demo="min"] {
   .md-body .cite { color: var(--color-gold); font-size: 0.8em; font-weight: 500; white-space: nowrap; }
 }
 
+/* ───────────── Opening sequence ───────────── */
+/* Covers the app before React mounts when the intro is about to play (set by the head script). */
+html[data-intro="1"] body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  background: #0c141d;
+}
+.intro-fly {
+  animation: intro-fly 4.2s cubic-bezier(0.25, 0.1, 0.3, 1) 0.1s both;
+}
+@keyframes intro-fly {
+  /* The jet body is the right ~38% of the element (contrails trail to the left): start with its nose
+     just off the left edge and finish with its tail just past the right edge. */
+  0% { transform: translate(-100%, 36px) rotate(-2deg); opacity: 0; }
+  6% { opacity: 1; }
+  94% { opacity: 1; }
+  100% { transform: translate(calc(100vw - 62%), -48px) rotate(-5deg); opacity: 0; }
+}
+.intro-brand {
+  animation: intro-brand 3.8s ease-in-out 0.4s both;
+}
+@keyframes intro-brand {
+  0% { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
+  25% { opacity: 1; transform: none; filter: blur(0); }
+  75% { opacity: 1; transform: none; filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-6px); filter: blur(3px); }
+}
+.intro-rise {
+  animation: intro-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes intro-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-brand, .intro-rise { animation: none !important; opacity: 1 !important; transform: none !important; filter: none !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

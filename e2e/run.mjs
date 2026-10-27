@@ -47,12 +47,46 @@ async function noHorizontalOverflow(label) {
 
 const browser = await chromium.launch(process.env.PW_EXECUTABLE ? { executablePath: process.env.PW_EXECUTABLE } : {});
 const context = await browser.newContext({ ...devices["iPhone 14 Pro"] });
+// Workflow tests start past the opening sequence; it has its own test below.
+await context.addInitScript(() => {
+  try {
+    sessionStorage.setItem("cabinsafe-intro-seen", "1");
+  } catch {}
+});
 page = await context.newPage();
 const consoleErrors = [];
 page.on("pageerror", (e) => consoleErrors.push(String(e)));
 page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.test(m.text()) && consoleErrors.push(m.text()));
 
 console.log(`CabinSafe E2E against ${BASE}`);
+
+await step("Opening sequence plays on first visit and hands off to the tour", async () => {
+  const fresh = await browser.newContext({ ...devices["iPhone 14 Pro"] });
+  const p = await fresh.newPage();
+  await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+  await p.getByTestId("intro").waitFor();
+  const text = await p.getByTestId("intro").innerText();
+  for (const s of ["CabinSafe", "Kate Keaney", "Brian Smith at Aviation Recruiting", "Cabin Attendant Subject Matter Expert", "Professionalism and Discretion", "today's jets"]) assert(text.includes(s), `intro missing: ${s}`);
+  await p.getByTestId("intro-tour").waitFor({ state: "visible", timeout: 15000 });
+  await p.screenshot({ path: `${OUT}00-intro.png` });
+  await p.getByTestId("intro-tour").click();
+  await p.getByTestId("intro").waitFor({ state: "detached" });
+  await p.getByTestId("demo-coach").waitFor();
+  await p.reload({ waitUntil: "domcontentloaded" });
+  await p.getByTestId("featured-flight").waitFor();
+  assert((await p.getByTestId("intro").count()) === 0, "intro replayed in the same session");
+  await fresh.close();
+});
+
+await step("Opening sequence can be skipped", async () => {
+  const fresh = await browser.newContext({ ...devices["iPhone 14 Pro"] });
+  const p = await fresh.newPage();
+  await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
+  await p.getByTestId("intro-skip").click();
+  await p.getByTestId("intro").waitFor({ state: "detached" });
+  await p.getByTestId("featured-flight").waitFor();
+  await fresh.close();
+});
 
 await step("Home dashboard loads with featured flight and Not Ready blocker", async () => {
   await go("/");

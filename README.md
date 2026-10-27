@@ -18,6 +18,8 @@ CabinSafe is a working Progressive Web App, not a mockup. It brings together six
 
 The mobile navigation is **Home · Flights · Boarding · Cabin · Copilot · More**. The pre-boarding checklist is also the top card on Home: cabin attendants see their own next flight, everyone else sees the next departure.
 
+An **opening sequence** plays on the first visit to the home page in each browser session: a jet crossing the screen, the CabinSafe wordmark, a dedication to the recipient, then the candidate's introduction. It ends with a choice between the guided tour and free exploration. It can be skipped, respects reduced-motion settings, and can be replayed from *More → Replay Intro* (or `/?intro=1`). Its copy lives in `src/components/Intro.tsx`.
+
 A built-in guided demonstration — **Experience CabinSafe** — walks a recruiter through the whole story in about five minutes. See [docs/RECRUITER_WALKTHROUGH.md](docs/RECRUITER_WALKTHROUGH.md).
 
 > All people, aliases, health information, flights and documents are fictional. Aircraft-specific information is labelled **Demonstration — Aircraft Verification Required**. The app never authorizes departure, makes go/no-go decisions, gives medical advice or replaces the Pilot in Command. Not affiliated with or endorsed by Gulfstream Aerospace.
@@ -136,8 +138,8 @@ Web app manifest (`/manifest.webmanifest`), maskable and Apple touch icons, stan
 
 Run in this repository's build environment (Chromium via Playwright, iPhone 14 Pro emulation, production build):
 
-- **Unit tests:** 30 passing (`npm test`) — seed integrity, relative dates, readiness blocking rules, rules engine, no-duplicate generation, Copilot refusals, citations, role filtering, briefing sections, superseded-document exclusion, feed parsers.
-- **End-to-end:** 25 passing (`npm run test:e2e`) — the 15 required workflows plus validation, role restriction, the pre-boarding flow (PA sends an input; cabin attendant acknowledges, completes checks and confirms), the full guided demo, PWA assets and console errors:
+- **Unit tests:** 31 passing (`npm test`) — seed integrity, relative dates, readiness blocking rules, rules engine, no-duplicate generation, Copilot refusals, citations, role filtering, briefing sections, superseded-document exclusion, feed parsers.
+- **End-to-end:** 27 passing (`npm run test:e2e`) — the 15 required workflows plus validation, role restriction, the opening sequence (plays, hands off to the tour, can be skipped, does not replay in the same session), the pre-boarding flow (PA sends an input; cabin attendant acknowledges, completes checks and confirms), the full guided demo, PWA assets and console errors:
   1. create and edit a flight · 2. complete a checklist item (and N/A reason validation) · 3. add a passenger · 4. rule-generated tasks and Lead review · 5. open an equipment marker · 6. complete an inspection · 7. readiness updates · 8. live-feed status / simulated advisory acknowledgement · 9. briefing and Copilot citations and guardrails · 10. assign a crew task · 11. switch role and accept a handover · 12. audit trail · 13. reset · 14. reload persistence · 15. no horizontal overflow on 22 mobile screens.
 
 Not tested: real iOS Safari / Android hardware, live external feeds (blocked in the build sandbox) and the live Claude path (no key available).

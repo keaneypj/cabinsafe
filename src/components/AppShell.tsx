@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { ClipboardCheck, Ellipsis, House, LayoutGrid, PlaneTakeoff, Sparkles, WifiOff } from "lucide-react";
 import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
 import { DemoCoach } from "./DemoCoach";
+import { Intro, shouldShowIntro } from "./Intro";
 import { remainingItems, usePreboardFlight, usePreboardView } from "./PreboardCard";
 import { Logo, Wordmark } from "./Logo";
 import { RoleChip } from "./RoleSwitcher";
@@ -50,6 +51,18 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hydrated = useHydrated();
   const demoActive = useStore((s) => s.demo.active);
   const online = useOnline();
+  const router = useRouter();
+  const [showIntro, setShowIntro] = useState(false);
+  useEffect(() => {
+    const show = shouldShowIntro(pathname, window.location.search);
+    setShowIntro(show);
+    if (!show) delete document.documentElement.dataset.intro;
+  }, [pathname]);
+  const closeIntro = () => {
+    setShowIntro(false);
+    delete document.documentElement.dataset.intro;
+    if (new URLSearchParams(window.location.search).get("intro")) router.replace(pathname);
+  };
   const preboardView = usePreboardView(usePreboardFlight());
   const preboardLeft = preboardView ? remainingItems(preboardView) : 0;
   useServiceWorker();
@@ -57,6 +70,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-dvh md:pl-[15.5rem]">
       <Toaster />
+      {hydrated && showIntro && <Intro onDone={closeIntro} />}
 
       {/* Desktop / tablet side rail */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-[15.5rem] flex-col border-r hairline bg-navy px-3 py-5 no-print">

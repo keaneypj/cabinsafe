@@ -30,13 +30,13 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const THEME_SCRIPT = `try{var t=localStorage.getItem("cabinsafe-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+// Applies the saved appearance, and covers the page if the opening sequence is about to play, before first paint.
+const THEME_SCRIPT = `try{var t=localStorage.getItem("cabinsafe-theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}try{var l=location;if(/[?&]intro=1/.test(l.search)||(l.pathname==="/"&&!sessionStorage.getItem("cabinsafe-intro-seen")))document.documentElement.dataset.intro="1"}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Apply the saved appearance before first paint to avoid a flash. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
