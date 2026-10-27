@@ -241,7 +241,7 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
           </p>
         ) : (
           <ul className="divide-y divide-[var(--separator)]">
-            {(allAttention ? v.attention : v.attention.slice(0, 5)).map((a, idx) => {
+            {(allAttention ? v.attention : v.attention.slice(0, 3)).map((a, idx) => {
               const M = ATTENTION_META[a.kind];
               const content = (
                 <>
@@ -271,7 +271,7 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
                 </li>
               );
             })}
-            {v.attention.length > 5 && (
+            {v.attention.length > 3 && (
               <li>
                 <button className="w-full px-4 py-3 text-left text-[0.9375rem] text-gold min-h-12" onClick={() => setAllAttention((x) => !x)}>
                   {allAttention ? "Show fewer" : `Show all ${v.attention.length}`}

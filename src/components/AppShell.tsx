@@ -8,6 +8,7 @@ import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
 import { DemoCoach } from "./DemoCoach";
+import { remainingItems, usePreboardFlight, usePreboardView } from "./PreboardCard";
 import { Logo, Wordmark } from "./Logo";
 import { RoleChip } from "./RoleSwitcher";
 import { Skeleton, Toaster } from "./ui";
@@ -49,6 +50,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const hydrated = useHydrated();
   const demoActive = useStore((s) => s.demo.active);
   const online = useOnline();
+  const preboardView = usePreboardView(usePreboardFlight());
+  const preboardLeft = preboardView ? remainingItems(preboardView) : 0;
   useServiceWorker();
 
   return (
@@ -64,9 +67,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           {NAV.map((n) => {
             const active = n.match(pathname);
             return (
-              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} className={cx("flex items-center gap-3 rounded-lg px-3 min-h-10 text-[0.9375rem] transition-colors", active ? "bg-gold/12 text-gold font-semibold" : "text-ivory hover:bg-navy-700")}>
+              <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} aria-label={n.href === "/preboard" && hydrated && preboardLeft ? `${n.label}, ${preboardLeft} items to do` : undefined} className={cx("flex items-center gap-3 rounded-lg px-3 min-h-10 text-[0.9375rem] transition-colors", active ? "bg-gold/12 text-gold font-semibold" : "text-ivory hover:bg-navy-700")}>
                 <n.icon className={cx("size-5", !active && "text-gold")} aria-hidden />
-                {n.label}
+                <span className="flex-1">{n.label}</span>
+                {n.href === "/preboard" && hydrated && preboardLeft > 0 && <span className="rounded-full bg-bad px-1.5 text-[0.75rem] font-semibold text-white tnum">{preboardLeft}</span>}
               </Link>
             );
           })}
@@ -109,7 +113,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             return (
               <li key={n.href}>
                 <Link href={n.href} aria-current={active ? "page" : undefined} className={cx("relative flex h-full flex-col items-center justify-center gap-0.5 pt-1 text-[0.625rem] font-medium tracking-[0.005em] transition-colors", active ? "text-gold" : "text-slate-500 hover:text-ivory")} data-testid={`nav-${n.label.toLowerCase()}`}>
-                  <n.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} aria-hidden />
+                  <span className="relative">
+                    <n.icon className="size-6" strokeWidth={active ? 2.2 : 1.8} aria-hidden />
+                    {n.href === "/preboard" && hydrated && preboardLeft > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 grid min-w-[1.125rem] h-[1.125rem] place-items-center rounded-full bg-bad px-1 text-[0.6875rem] font-semibold leading-none text-white tnum" data-testid="boarding-badge">
+                        {preboardLeft}
+                      </span>
+                    )}
+                  </span>
                   <span>{n.label}</span>
                 </Link>
               </li>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, ChevronRight, CloudLightning, FlaskConical, Handshake, History, LayoutGrid, ListChecks, Play, Sparkles, Wrench } from "lucide-react";
 import { DemoIntroSheet } from "@/components/DemoCoach";
-import { PreboardCard } from "@/components/PreboardCard";
+import { PreboardHero, usePreboardFlight } from "@/components/PreboardCard";
 import { FlightTimes, ReadinessPanel, RouteLine } from "@/components/flight";
 import { TaskRow, TaskSheet } from "@/components/tasks";
 import { Badge, Card, EmptyState, SectionHeader, SimulatedBadge } from "@/components/ui";
@@ -43,7 +43,7 @@ export default function HomePage() {
   const unacked = flight ? flightAdvs.filter((a) => !isAcked(acks, a.id, flight.id)) : [];
   const pendingHandovers = handovers.filter((h) => h.status !== "accepted");
   // Cabin attendants see their own next flight's pre-boarding first.
-  const preboardFlight = (me.role === "contract_ca" ? flights.filter((f) => f.status !== "completed" && f.cabinAttendantId === me.id).sort((a, b) => a.departAt.localeCompare(b.departAt))[0] : undefined) ?? flight;
+  const preboardFlight = usePreboardFlight();
 
   return (
     <div className="space-y-5">
@@ -54,7 +54,7 @@ export default function HomePage() {
         </h1>
       </div>
 
-      {preboardFlight && <PreboardCard flight={preboardFlight} />}
+      {preboardFlight && <PreboardHero flight={preboardFlight} />}
 
       {!demoActive && (
         <button onClick={() => setIntro(true)} className="w-full text-left card p-4 transition-colors animate-fade-up" data-testid="experience-cta">

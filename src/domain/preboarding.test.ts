@@ -35,6 +35,12 @@ describe("pre-boarding", () => {
     expect(v.canSignOff).toBe(false);
   });
 
+  it("keeps 'Needs attention' to items that affect boarding", () => {
+    const v = computePreboarding(input());
+    expect(v.attention.map((a) => a.kind).sort()).toEqual(["advisory", "blocked", "blocker", "equipment", "equipment"]);
+    expect(v.attention.some((a) => a.label.startsWith("FL-03"))).toBe(false); // minor item on non-critical equipment
+  });
+
   it("boards 30 minutes before departure", () => {
     const f = input().flight;
     expect(new Date(f.departAt).getTime() - new Date(boardingTime(f)).getTime()).toBe(30 * 60_000);

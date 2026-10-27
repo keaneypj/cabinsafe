@@ -86,12 +86,14 @@ export function computePreboarding(input: PreboardInput): PreboardView {
   };
   for (const t of general.filter((x) => x.status === "blocked")) push(t, "blocked", t.blockedReason);
   for (const t of general.filter((x) => x.dueAt && new Date(x.dueAt).getTime() < nowMs)) push(t, "overdue");
-  for (const t of general.filter((x) => x.priority === "critical")) push(t, "critical");
+  // Open critical preparation tasks are tracked in the flight's readiness view; listing them all here
+  // made this section unmanageable, so only items that stop or delay boarding are surfaced.
   const departMs = new Date(flight.departAt).getTime();
   for (const e of input.equipment) {
     const s = effectiveEquipmentStatus(e, nowMs);
     if (readiness.blockers.some((b) => b.ref === e.id)) continue;
-    if (s === "discrepancy" || (s === "due_soon" && new Date(e.nextInspectionDue).getTime() <= departMs)) {
+    // Critical equipment only: minor items on non-critical equipment stay on the discrepancy list.
+    if (e.critical && (s === "discrepancy" || (s === "due_soon" && new Date(e.nextInspectionDue).getTime() <= departMs))) {
       attention.push({ kind: "equipment", label: `${e.code} ${e.name}`, detail: s === "discrepancy" ? "Open discrepancy" : "Inspection due before departure", href: `/cabin?eq=${e.id}` });
     }
   }
