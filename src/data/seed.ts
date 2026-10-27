@@ -76,15 +76,15 @@ export const PASSENGERS: Passenger[] = [
     emergencyPlanRef: "EP-LYRA-01",
   },
   {
-    id: "pax-sage", alias: "SAGE", displayName: "Mother of the Principal", relationship: "Parent · senior family member", category: "family", initials: "SG",
+    id: "pax-rebecca", alias: "REBECCA", displayName: "Mother of the Principal", relationship: "Parent · senior family member", category: "family", initials: "RB",
     accommodations: [
-      { id: "acc-sage-1", type: "mobility", summary: "Unhurried boarding with airstair assistance offered; seat close to forward lavatory.", documentation: "documented", planRef: "MAP-SAGE-02" },
-      { id: "acc-sage-2", type: "medical_equipment", summary: "May travel with personal medical equipment. Requirements to be confirmed with her representative before each flight.", documentation: "pending_confirmation" },
-      { id: "acc-sage-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-SAGE-01" },
+      { id: "acc-rebecca-1", type: "mobility", summary: "Unhurried boarding with airstair assistance offered; seat close to forward lavatory.", documentation: "documented", planRef: "MAP-REBECCA-02" },
+      { id: "acc-rebecca-2", type: "medical_equipment", summary: "May travel with personal medical equipment. Requirements to be confirmed with her representative before each flight.", documentation: "pending_confirmation" },
+      { id: "acc-rebecca-3", type: "medical_plan", summary: "Individual care plan on file (restricted).", documentation: "documented", planRef: "ICP-REBECCA-01" },
     ],
     dietary: ["Low-sodium meals"],
     preferences: ["Warm cabin temperature", "Reading light and large-print menu"],
-    emergencyPlanRef: "ICP-SAGE-01",
+    emergencyPlanRef: "ICP-REBECCA-01",
     restrictedMedical: "Synthetic record: chronic obstructive pulmonary disease (COPD). Care decisions rest with the passenger and her physician. Escalation per CSI-MED-002 §2.",
   },
   {
@@ -181,7 +181,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
       id: FEATURED_FLIGHT_ID, callsign: "CSI101", aircraftId: "ac-demo-700", departure: "KMIA", destination: "LSGG", alternates: ["LSZH", "LFLL"],
       departAt: iso(f101Depart), arriveAt: iso(f101Depart + 8.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
-      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-sage", "pax-cedar", "pax-meridian", "pax-copper"], status: "scheduled",
+      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-rebecca", "pax-cedar", "pax-meridian", "pax-copper"], status: "scheduled",
       notes: "Overnight transatlantic. Family travel with senior family members and guest.",
     },
     {
@@ -193,7 +193,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
       id: "flt-csi103", callsign: "CSI103", aircraftId: "ac-demo-700", departure: "EGLF", destination: "KPBI", alternates: ["KFLL", "KMIA"],
       departAt: iso(f103Depart), arriveAt: iso(f103Depart + 9.5 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
-      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-lyra", "pax-sage", "pax-cedar", "pax-copper"], status: "planning",
+      manifest: ["pax-atlas", "pax-aurora", "pax-orion", "pax-lyra", "pax-rebecca", "pax-cedar", "pax-copper"], status: "planning",
     },
   ];
 
@@ -252,7 +252,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
 
   // Generated tasks for CSI101: some reviewed / done
   const g = (pid: string, rule: string) => `gen:${FEATURED_FLIGHT_ID}:${pid}:${rule}`;
-  patch(g("pax-sage", "acc-sage-1:boarding"), { reviewed: true });
+  patch(g("pax-rebecca", "acc-rebecca-1:boarding"), { reviewed: true });
   patch(g("pax-orion", "acc-orion-1:ingredients"), { reviewed: true, status: "in_progress", notes: "Written caterer confirmation requested." });
   done(g("pax-meridian", "dietary"), LEAD_ID, 8, { reviewed: true });
   done(g("pax-copper", "acc-copper-1:docs"), PA_ID, 30, { reviewed: true, notes: "PA confirmed via official Swiss government guidance. Certificate copy held by PA." });
@@ -339,7 +339,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
       status: "submitted",
       openTaskIds: [c("cat-reconcile"), c("med-tele"), c("eme-flash"), checklistTaskId("flt-csi100", "pf-restock")],
       equipmentSummary: "AED-01 daily inspection due before CSI101. FAK-02 dressings restock pending (minor). FL-03 charge indicator amber, on charge (minor). O2-02 inspection due within 24 h.",
-      accommodationSummary: "SAGE and CEDAR: documented boarding assistance. ORION: peanut precaution — cross-contact controls apply. COPPER travelling; restraint for taxi/take-off/landing. Medical details restricted to Lead CA.",
+      accommodationSummary: "REBECCA and CEDAR: documented boarding assistance. ORION: peanut precaution — cross-contact controls apply. COPPER travelling; restraint for taxi/take-off/landing. Medical details restricted to Lead CA.",
       acknowledgements: [
         { id: "ack-1", label: "Reviewed open safety items" },
         { id: "ack-2", label: "Reviewed equipment status and discrepancies" },
@@ -371,7 +371,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     },
     {
       id: "inp-pic-1", flightId: FEATURED_FLIGHT_ID, fromId: PIC_ID, fromRole: "pilot", category: "safety", priority: "important", requiresAck: true, createdAt: iso(now - 90 * 60_000), acks: [],
-      text: "Expect moderate turbulence on descent into Geneva. Plan to complete service 45 minutes before top of descent; I will call 'cabin secure' 20 minutes prior. Brief SAGE and CEDAR on early seat-belt use at boarding.",
+      text: "Expect moderate turbulence on descent into Geneva. Plan to complete service 45 minutes before top of descent; I will call 'cabin secure' 20 minutes prior. Brief REBECCA and CEDAR on early seat-belt use at boarding.",
     },
     {
       id: "inp-pa-1", flightId: FEATURED_FLIGHT_ID, fromId: PA_ID, fromRole: "assistant", category: "timing", priority: "important", requiresAck: true, createdAt: iso(now - 70 * 60_000), acks: [],

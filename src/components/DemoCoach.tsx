@@ -38,9 +38,9 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     key: "passenger",
     title: "Review Passenger Safety",
-    body: "SAGE, a senior family member, has a documented mobility accommodation. See the rule-generated preparation tasks — and how medical detail stays restricted.",
-    route: `/passengers/pax-sage?flight=${FEATURED_FLIGHT_ID}`,
-    cta: "Open SAGE's profile",
+    body: "REBECCA, a senior family member, has a documented mobility accommodation. See the rule-generated preparation tasks — and how medical detail stays restricted.",
+    route: `/passengers/pax-rebecca?flight=${FEATURED_FLIGHT_ID}`,
+    cta: "Open REBECCA's profile",
     done: (s) => !!s.demo.done.passenger,
   },
   {

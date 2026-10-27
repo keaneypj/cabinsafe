@@ -147,19 +147,19 @@ await step("14. Reload and verify persistence", async () => {
 await step("3+4. Add passenger to manifest and generate preparation tasks", async () => {
   await go("/flights/flt-csi102?tab=manifest");
   await tid("add-passenger").click();
-  await tid("add-pax-SAGE").click();
+  await tid("add-pax-REBECCA").click();
   await tid("generated-result").waitFor();
   const txt = await tid("generated-result").innerText();
-  assert(/Boarding assistance preparation — SAGE/.test(txt), "boarding task not generated");
-  assert(/Confirm medical equipment requirements — SAGE/.test(txt), "confirmation task not generated");
+  assert(/Boarding assistance preparation — REBECCA/.test(txt), "boarding task not generated");
+  assert(/Confirm medical equipment requirements — REBECCA/.test(txt), "confirmation task not generated");
   await page.screenshot({ path: `${OUT}03-generated.png` });
   await page.getByRole("button", { name: "Done" }).click();
-  await tid("manifest-list").getByText("SAGE").waitFor();
+  await tid("manifest-list").getByText("REBECCA").waitFor();
 });
 
 await step("4b. Lead CA reviews a generated task", async () => {
   await go("/flights/flt-csi102?tab=checklist&filter=review");
-  await page.locator('[data-testid^="task-gen:flt-csi102:pax-sage"]').first().click();
+  await page.locator('[data-testid^="task-gen:flt-csi102:pax-rebecca"]').first().click();
   await tid("task-review").click();
   await page.getByText("Marked reviewed").waitFor();
 });
@@ -248,7 +248,7 @@ await step("10b. Assigned task appears in the contract attendant's queue", async
 });
 
 await step("Restricted medical details hidden in contract attendant role", async () => {
-  await go("/passengers/pax-sage");
+  await go("/passengers/pax-rebecca");
   await tid("restricted-locked").waitFor();
   assert(!(await page.content()).includes("COPD"), "COPD visible to contract attendant");
 });
@@ -311,7 +311,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
   await page.waitForURL(/\/intel/);
   await tid("adv-ack").click();
   await demoNext(); // → 3
-  await page.waitForURL(/\/passengers\/pax-sage/);
+  await page.waitForURL(/\/passengers\/pax-rebecca/);
   await tid("generated-tasks").waitFor();
   await demoNext(); // → 4
   await page.waitForURL(/\/cabin/);

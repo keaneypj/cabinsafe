@@ -88,8 +88,8 @@ describe("readiness", () => {
 describe("rules engine", () => {
   it("creates boarding preparation for a documented mobility requirement", () => {
     const c = ctx();
-    const sage = c.passengers.find((p) => p.alias === "SAGE")!;
-    const tasks = generateTasksForPassenger(sage, c.flight, new Set(), new Date(NOW).toISOString());
+    const rebecca = c.passengers.find((p) => p.alias === "REBECCA")!;
+    const tasks = generateTasksForPassenger(rebecca, c.flight, new Set(), new Date(NOW).toISOString());
     expect(tasks.some((t) => t.title.startsWith("Boarding assistance preparation"))).toBe(true);
     const equip = tasks.find((t) => t.title.startsWith("Confirm medical equipment"))!;
     expect(equip.detail).toMatch(/Do not assume/);
@@ -105,9 +105,9 @@ describe("rules engine", () => {
 
   it("does not duplicate existing tasks", () => {
     const c = ctx();
-    const sage = c.passengers.find((p) => p.alias === "SAGE")!;
-    const first = generateTasksForPassenger(sage, c.flight, new Set(), "");
-    const again = generateTasksForPassenger(sage, c.flight, new Set(first.map((t) => t.id)), "");
+    const rebecca = c.passengers.find((p) => p.alias === "REBECCA")!;
+    const first = generateTasksForPassenger(rebecca, c.flight, new Set(), "");
+    const again = generateTasksForPassenger(rebecca, c.flight, new Set(first.map((t) => t.id)), "");
     expect(again).toHaveLength(0);
   });
 });
@@ -125,7 +125,7 @@ describe("copilot", () => {
   });
 
   it("refuses medical treatment questions", () => {
-    expect(answer("What medication should I give SAGE?", ctx()).kind).toBe("medical_refusal");
+    expect(answer("What medication should I give REBECCA?", ctx()).kind).toBe("medical_refusal");
   });
 
   it("answers allergen procedure questions with citations", () => {

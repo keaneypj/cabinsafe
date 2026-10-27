@@ -33,7 +33,7 @@ function Passenger() {
   const [flightId, setFlightId] = useState<string | undefined>(sp.get("flight") ?? onFlights[0]?.id);
 
   useEffect(() => {
-    if (demo.active && DEMO_STEP_PASSENGER === demo.step && id === "pax-sage") useStore.getState().demoMark("passenger");
+    if (demo.active && DEMO_STEP_PASSENGER === demo.step && id === "pax-rebecca") useStore.getState().demoMark("passenger");
   }, [demo.active, demo.step, id]);
 
   if (!p) return <EmptyState title="Passenger not found" />;
