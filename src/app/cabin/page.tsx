@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import { ChevronRight, List, Map as MapIcon } from "lucide-react";
+import { CabinInventory } from "@/components/CabinInventory";
 import { CabinMap, CATEGORY_META, STATUS_STYLE, StatusLegend } from "@/components/CabinMap";
 import { EquipmentSheet } from "@/components/EquipmentSheet";
 import { Card, Chip, PageTitle, Segmented, VerifyNotice } from "@/components/ui";
@@ -37,7 +38,7 @@ function Cabin() {
   const router = useRouter();
   const now = useNow();
   const equipment = useStore((s) => s.equipment);
-  const [view, setView] = useState<"map" | "list">("map");
+  const [view, setView] = useState<"map" | "list" | "inventory">(sp.get("view") === "inventory" ? "inventory" : "map");
   const [filter, setFilter] = useState("all");
   const [zone, setZone] = useState<ZoneId | undefined>();
   const selected = sp.get("eq");
@@ -59,7 +60,16 @@ function Cabin() {
 
   return (
     <div>
-      <PageTitle eyebrow={`${AIRCRAFT.tail} · ${AIRCRAFT.year} G700 · conceptual`} title="Cabin Safety Map" subtitle="Five living zones · tap any marker to open its equipment record" action={<div className="w-40"><Segmented ariaLabel="View" value={view} onChange={setView} options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }]} /></div>} />
+      <PageTitle
+        eyebrow={`${AIRCRAFT.tail} · ${AIRCRAFT.year} G700${view === "inventory" ? "" : " · conceptual"}`}
+        title={view === "inventory" ? "Cabin Inventory" : "Cabin Safety Map"}
+        subtitle={view === "inventory" ? "What's on board against usual stock · tap + or − to log" : "Five living zones · tap any marker to open its equipment record"}
+        action={<div className="w-64"><Segmented ariaLabel="View" value={view} onChange={setView} options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }, { value: "inventory", label: "Inventory" }]} /></div>}
+      />
+      {view === "inventory" ? (
+        <CabinInventory />
+      ) : (
+      <>
       <VerifyNotice className="mb-3" />
 
       <div className="scroll-x -mx-4 px-4 mb-3">
@@ -134,6 +144,8 @@ function Cabin() {
       <p className="text-[0.6875rem] text-slate-500 mt-3 flex items-center gap-1.5">
         {view === "map" ? <MapIcon className="size-3.5" /> : <List className="size-3.5" />} Markers represent demonstration equipment categories in a conceptual layout; they do not represent actual G700 equipment locations.
       </p>
+      </>
+      )}
       <EquipmentSheet equipmentId={selected} onClose={close} />
     </div>
   );
