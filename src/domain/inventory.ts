@@ -11,9 +11,37 @@ export const CATEGORY_LABELS: Record<InventoryCategory, string> = {
   fresh: "Milk & juice",
   snacks: "Snacks",
   coffee: "Coffee",
+  other: "Other",
 };
 
-export const CATEGORY_ORDER: InventoryCategory[] = ["wine", "soft_drinks", "fresh", "snacks", "coffee"];
+export const CATEGORY_ORDER: InventoryCategory[] = ["wine", "soft_drinks", "fresh", "snacks", "coffee", "other"];
+
+export interface InventoryItemInput {
+  name: string;
+  category: InventoryCategory;
+  par: number | string;
+  /** Only used when adding an item; counts are otherwise logged from the list. */
+  onBoard?: number | string;
+}
+
+export type ValidItem = { name: string; category: InventoryCategory; par: number; onBoard: number };
+
+/**
+ * Checks an item being added or edited. `editingId` is the item being edited,
+ * so it doesn't clash with its own name.
+ */
+export function validateInventoryItem(input: InventoryItemInput, existing: InventoryItem[], editingId?: string): { ok: true; value: ValidItem } | { ok: false; error: string } {
+  const name = input.name.trim().replace(/\s+/g, " ");
+  if (name.length < 2 || name.length > 40) return { ok: false, error: "Give the item a name of 2 to 40 characters." };
+  const clash = existing.find((i) => i.id !== editingId && i.name.toLowerCase() === name.toLowerCase());
+  if (clash) return { ok: false, error: `${clash.name} is already on the list.` };
+  if (!CATEGORY_ORDER.includes(input.category)) return { ok: false, error: "Choose a category." };
+  const par = parseCount(input.par);
+  if (par === null || par < 1) return { ok: false, error: `Set the usual amount to a whole number from 1 to ${MAX_COUNT}.` };
+  const onBoard = input.onBoard === undefined || input.onBoard === "" ? 0 : parseCount(input.onBoard);
+  if (onBoard === null) return { ok: false, error: `Set the amount on board to a whole number from 0 to ${MAX_COUNT}.` };
+  return { ok: true, value: { name, category: input.category, par, onBoard } };
+}
 
 export function stockLevel(item: Pick<InventoryItem, "onBoard" | "par">): StockLevel {
   if (item.onBoard <= 0) return "out";

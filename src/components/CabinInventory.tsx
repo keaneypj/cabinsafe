@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { Minus, PackageCheck, Plus } from "lucide-react";
-import { Badge, Button, Card, ConfirmDialog, Notice, ProgressBar, report, SectionHeader, type Tone } from "@/components/ui";
-import { groupInventory, MAX_COUNT, parseCount, stockLevel, summarizeInventory, type StockLevel } from "@/domain/inventory";
+import { useCallback, useState, type ReactNode } from "react";
+import { ChevronRight, Minus, PackageCheck, PackagePlus, Plus, Trash2 } from "lucide-react";
+import { Badge, Button, Card, ConfirmDialog, EmptyState, Field, Notice, ProgressBar, report, SectionHeader, Sheet, type Tone } from "@/components/ui";
+import { CATEGORY_LABELS, CATEGORY_ORDER, groupInventory, MAX_COUNT, parseCount, stockLevel, summarizeInventory, type StockLevel } from "@/domain/inventory";
 import { can } from "@/domain/permissions";
-import type { InventoryItem } from "@/domain/types";
+import type { InventoryCategory, InventoryItem } from "@/domain/types";
 import { fmtRelative } from "@/lib/format";
 import { useCrewName, useNow } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
@@ -16,6 +16,9 @@ const LEVEL: Record<StockLevel, { label: string; tone: Tone }> = {
   out: { label: "Out", tone: "bad" },
 };
 
+/** Which item the add/edit sheet is showing: a new one, or an existing item's id. */
+type SheetTarget = { mode: "add" } | { mode: "edit"; id: string };
+
 /** Cabin catering inventory: what is on board against the usual stock, with quick logging. */
 export function CabinInventory() {
   const items = useStore((s) => s.inventory);
@@ -25,7 +28,13 @@ export function CabinInventory() {
   const name = useCrewName();
   const now = useNow();
   const [confirmFill, setConfirmFill] = useState(false);
-  const editable = can(me.role, "inventory.update");
+  const [editing, setEditing] = useState(false);
+  const [sheet, setSheet] = useState<SheetTarget | null>(null);
+  // Stable so the open sheet doesn't re-run its focus handling when the clock ticks.
+  const closeSheet = useCallback(() => setSheet(null), []);
+  const canLog = can(me.role, "inventory.update");
+  const canManage = can(me.role, "inventory.manage");
+  const isEditing = editing && canManage;
   const sum = summarizeInventory(items);
 
   const fill = () => {
@@ -49,7 +58,7 @@ export function CabinInventory() {
           <div className="flex flex-wrap justify-end gap-1.5">
             {sum.low > 0 && <Badge tone="warn">{sum.low} low</Badge>}
             {sum.out > 0 && <Badge tone="bad">{sum.out} out</Badge>}
-            {sum.low + sum.out === 0 && <Badge tone="ok">Fully stocked</Badge>}
+            {sum.total > 0 && sum.low + sum.out === 0 && <Badge tone="ok">Fully stocked</Badge>}
           </div>
         </div>
         <div className="mt-3">
@@ -63,14 +72,14 @@ export function CabinInventory() {
         )}
       </Card>
 
-      {!editable && <Notice tone="info">Your demo role can view the inventory. Cabin attendants log what is on board.</Notice>}
+      {!canLog && <Notice tone="info">Your demo role can view the inventory. Cabin attendants log what is on board.</Notice>}
 
-      {sum.restock.length > 0 && (
+      {!isEditing && sum.restock.length > 0 && (
         <section>
           <SectionHeader
             title="To restock"
             action={
-              editable ? (
+              canLog ? (
                 <Button size="sm" variant="secondary" onClick={() => setConfirmFill(true)} data-testid="inventory-fill">
                   <PackageCheck className="size-4" aria-hidden /> Mark all restocked
                 </Button>
@@ -90,16 +99,43 @@ export function CabinInventory() {
         </section>
       )}
 
+      {canManage && (
+        <div className="flex items-center justify-between gap-3 px-1">
+          <p className="text-[0.8125rem] text-slate">{isEditing ? "Tap an item to rename it, change its usual amount or remove it." : "Stock list"}</p>
+          <Button size="sm" variant={isEditing ? "primary" : "ghost"} onClick={() => setEditing(!isEditing)} data-testid="inventory-edit">
+            {isEditing ? "Done" : "Edit list"}
+          </Button>
+        </div>
+      )}
+
+      {items.length === 0 && (
+        <EmptyState icon={<PackagePlus className="size-7" />} title="No stock items yet">
+          {canManage ? "Add the items usually stocked on board." : "The Lead Cabin Attendant sets up the stock list."}
+        </EmptyState>
+      )}
+
       {groupInventory(items).map((g) => (
         <section key={g.category}>
           <SectionHeader title={g.label} />
           <ul className="card p-0 divide-y divide-[var(--separator)] overflow-hidden">
-            {g.items.map((item) => (
-              <InventoryRow key={item.id} item={item} editable={editable} onSet={(n) => report(setCount(item.id, n))} />
-            ))}
+            {g.items.map((item) =>
+              isEditing ? (
+                <EditRow key={item.id} item={item} onOpen={() => setSheet({ mode: "edit", id: item.id })} />
+              ) : (
+                <InventoryRow key={item.id} item={item} editable={canLog} onSet={(n) => report(setCount(item.id, n))} />
+              ),
+            )}
           </ul>
         </section>
       ))}
+
+      {isEditing && (
+        <Button variant="secondary" className="w-full" onClick={() => setSheet({ mode: "add" })} data-testid="inventory-add">
+          <PackagePlus className="size-4" aria-hidden /> Add item
+        </Button>
+      )}
+
+      {sheet && <ItemSheet key={sheet.mode === "edit" ? sheet.id : "new"} target={sheet} onClose={closeSheet} />}
 
       <ConfirmDialog
         open={confirmFill}
@@ -134,6 +170,20 @@ function InventoryRow({ item, editable, onSet }: { item: InventoryItem; editable
           <Plus className="size-4" aria-hidden />
         </StepButton>
       </div>
+    </li>
+  );
+}
+
+function EditRow({ item, onOpen }: { item: InventoryItem; onOpen: () => void }) {
+  return (
+    <li>
+      <button type="button" onClick={onOpen} className="w-full flex items-center gap-3 px-3.5 py-2.5 min-h-15 text-left hover:bg-navy-700/30" data-testid={`inv-edit-${item.id}`}>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[0.9375rem] text-ivory truncate">{item.name}</span>
+          <span className="block text-xs text-slate">Usual amount {item.par}</span>
+        </span>
+        <ChevronRight className="size-4 text-slate-500" aria-hidden />
+      </button>
     </li>
   );
 }
@@ -179,5 +229,113 @@ function CountInput({ item, disabled, onCommit }: { item: InventoryItem; disable
       data-testid={`inv-count-${item.id}`}
       className="w-9 min-h-11 rounded-lg bg-transparent text-right text-[1.0625rem] font-semibold tnum text-ivory outline-none focus:bg-navy-700 disabled:opacity-100"
     />
+  );
+}
+
+/** Add a stock item, or edit an existing one's name, category and usual amount. */
+function ItemSheet({ target, onClose }: { target: SheetTarget; onClose: () => void }) {
+  const items = useStore((s) => s.inventory);
+  const add = useStore((s) => s.addInventoryItem);
+  const update = useStore((s) => s.updateInventoryItem);
+  const remove = useStore((s) => s.removeInventoryItem);
+  const existing = target.mode === "edit" ? items.find((i) => i.id === target.id) : undefined;
+  const [form, setForm] = useState({
+    name: existing?.name ?? "",
+    category: existing?.category ?? ("other" as InventoryCategory),
+    par: String(existing?.par ?? ""),
+    onBoard: "0",
+  });
+  const [error, setError] = useState<string>();
+  const [confirmRemove, setConfirmRemove] = useState(false);
+  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
+  const numeric = (v: string) => v.replace(/[^0-9]/g, "").slice(0, 2);
+
+  if (target.mode === "edit" && !existing) return null;
+
+  const save = () => {
+    const res = existing ? update(existing.id, form) : add(form);
+    if (!res.ok) return setError(res.error);
+    report(res, existing ? `Saved ${form.name.trim()}` : `Added ${form.name.trim()}`);
+    onClose();
+  };
+  const doRemove = () => {
+    if (!existing) return;
+    if (report(remove(existing.id), `Removed ${existing.name}`)) onClose();
+  };
+
+  return (
+    <Sheet
+      open
+      onClose={onClose}
+      title={existing ? `Edit ${existing.name}` : "Add stock item"}
+      subtitle={existing ? `${existing.onBoard} on board now` : "Something usually stocked on board"}
+      footer={
+        confirmRemove ? (
+          <>
+            <Button variant="secondary" className="flex-1" onClick={() => setConfirmRemove(false)}>
+              Keep it
+            </Button>
+            <Button variant="danger" className="flex-1" onClick={doRemove} data-testid="inv-remove-confirm">
+              Remove
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="secondary" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button className="flex-1" onClick={save} data-testid="inv-save">
+              {existing ? "Save" : "Add item"}
+            </Button>
+          </>
+        )
+      }
+    >
+      {confirmRemove && existing ? (
+        <p className="text-sm text-slate leading-relaxed">Remove {existing.name} from the stock list? Its count ({existing.onBoard}/{existing.par}) is removed too. The audit history keeps a record.</p>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            save();
+          }}
+        >
+          <Field label="Name" htmlFor="inv-name">
+            <input id="inv-name" className="field" value={form.name} onChange={(e) => set("name", e.target.value)} placeholder="e.g. Sparkling water" maxLength={40} autoComplete="off" />
+          </Field>
+          <Field label="Category" htmlFor="inv-category">
+            <select id="inv-category" className="field" value={form.category} onChange={(e) => set("category", e.target.value as InventoryCategory)}>
+              {CATEGORY_ORDER.map((c) => (
+                <option key={c} value={c}>
+                  {CATEGORY_LABELS[c]}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Usual amount" htmlFor="inv-par" hint="Full stock level">
+              <input id="inv-par" className="field tnum" inputMode="numeric" pattern="[0-9]*" value={form.par} onChange={(e) => set("par", numeric(e.target.value))} placeholder="5" />
+            </Field>
+            {!existing && (
+              <Field label="On board now" htmlFor="inv-onboard">
+                <input id="inv-onboard" className="field tnum" inputMode="numeric" pattern="[0-9]*" value={form.onBoard} onChange={(e) => set("onBoard", numeric(e.target.value))} onFocus={(e) => e.target.select()} />
+              </Field>
+            )}
+          </div>
+          {error && (
+            <p className="text-xs text-bad -mt-1 mb-2" role="alert">
+              {error}
+            </p>
+          )}
+          {/* Lets Enter submit from any field. */}
+          <button type="submit" hidden />
+          {existing && (
+            <Button type="button" variant="danger" size="sm" className="mt-2" onClick={() => setConfirmRemove(true)} data-testid="inv-remove">
+              <Trash2 className="size-4" aria-hidden /> Remove from list
+            </Button>
+          )}
+        </form>
+      )}
+    </Sheet>
   );
 }

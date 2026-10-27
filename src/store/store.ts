@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { createInventory } from "@/data/inventory";
 import { createSeed, LEAD_ID, type SeedState } from "@/data/seed";
 import { buildChecklist } from "@/domain/checklists";
-import { parseCount } from "@/domain/inventory";
+import { CATEGORY_LABELS, parseCount, validateInventoryItem, type InventoryItemInput } from "@/domain/inventory";
 import { can, type Permission } from "@/domain/permissions";
 import { computePreboarding } from "@/domain/preboarding";
 import { generateTasksForPassenger } from "@/domain/rules";
@@ -93,6 +93,9 @@ export interface Actions {
   signOffPreboarding(flightId: string, note?: string): Result<PreboardSignoff>;
   setInventoryCount(itemId: string, count: number | string): Result;
   fillInventoryToPar(): Result<{ changed: number }>;
+  addInventoryItem(input: InventoryItemInput): Result<InventoryItem>;
+  updateInventoryItem(itemId: string, input: InventoryItemInput): Result;
+  removeInventoryItem(itemId: string): Result;
   resetDemo(): void;
   demoStart(): void;
   demoGo(step: number): void;
@@ -588,6 +591,47 @@ export const useStore = create<Store>()(
           set((s) => ({ inventory: s.inventory.map((i) => (ids.has(i.id) ? { ...i, onBoard: i.par, updatedAt: at, updatedById: u.id } : i)) }));
           pushAudit(audit("inventory.update", "inventory", "all", `Restocked to usual levels: ${short.map((i) => `${i.name} ${i.onBoard}→${i.par}`).join(", ")}`));
           return { ok: true, value: { changed: short.length } };
+        },
+
+        addInventoryItem(input) {
+          const d = deny("inventory.manage");
+          if (d) return d;
+          const v = validateInventoryItem(input, get().inventory);
+          if (!v.ok) return v;
+          const item: InventoryItem = { id: uid("inv"), ...v.value, updatedAt: new Date().toISOString(), updatedById: me().id };
+          set((s) => ({ inventory: [...s.inventory, item] }));
+          pushAudit(audit("inventory.update", "inventory", item.id, `Added to inventory: ${item.name} (${CATEGORY_LABELS[item.category]}, usual ${item.par}, ${item.onBoard} on board)`));
+          return { ok: true, value: item };
+        },
+
+        updateInventoryItem(itemId, input) {
+          const d = deny("inventory.manage");
+          if (d) return d;
+          const prev = get().inventory.find((i) => i.id === itemId);
+          if (!prev) return { ok: false, error: "Inventory item not found." };
+          // Counts are logged from the list, so editing keeps the current count.
+          const v = validateInventoryItem({ ...input, onBoard: prev.onBoard }, get().inventory, itemId);
+          if (!v.ok) return v;
+          const { name, category, par } = v.value;
+          const changes = [
+            name !== prev.name && `renamed from ${prev.name}`,
+            category !== prev.category && `moved to ${CATEGORY_LABELS[category]}`,
+            par !== prev.par && `usual amount ${prev.par} → ${par}`,
+          ].filter(Boolean);
+          if (!changes.length) return { ok: true };
+          set((s) => ({ inventory: s.inventory.map((i) => (i.id === itemId ? { ...i, name, category, par } : i)) }));
+          pushAudit(audit("inventory.update", "inventory", itemId, `Edited ${name}: ${changes.join(", ")}`));
+          return { ok: true };
+        },
+
+        removeInventoryItem(itemId) {
+          const d = deny("inventory.manage");
+          if (d) return d;
+          const item = get().inventory.find((i) => i.id === itemId);
+          if (!item) return { ok: false, error: "Inventory item not found." };
+          set((s) => ({ inventory: s.inventory.filter((i) => i.id !== itemId) }));
+          pushAudit(audit("inventory.update", "inventory", itemId, `Removed from inventory: ${item.name} (${item.onBoard}/${item.par} on board)`));
+          return { ok: true };
         },
 
         saveIntel(key, snap) {

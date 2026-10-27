@@ -368,7 +368,7 @@ export type AuditAction =
 
 // ───────────────────────────── Cabin inventory ─────────────────────────────
 
-export type InventoryCategory = "wine" | "soft_drinks" | "fresh" | "snacks" | "coffee";
+export type InventoryCategory = "wine" | "soft_drinks" | "fresh" | "snacks" | "coffee" | "other";
 
 /** A routinely stocked catering item: how many are on board against the usual stock level. */
 export interface InventoryItem {
