@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSeed, DEMO_FIRST_DUE, FEATURED_FLIGHT_ID, LEAD_ID, CA_SAM } from "@/data/seed";
+import { createSeed, DEMO_FIRST_DUE, FEATURED_FLIGHT_ID, LEAD_ID } from "@/data/seed";
 import { generateBriefing } from "./briefing";
 import type { FlightContext } from "./context";
 import { answer, NO_SOURCE_MESSAGE } from "./copilot";
@@ -176,7 +176,6 @@ describe("briefing", () => {
 
   it("reflects the assigned cabin attendant", () => {
     const b = generateBriefing(ctx());
-    expect(b.markdown).toContain("Sam Whitaker");
-    void CA_SAM;
+    expect(b.markdown).toContain("Kate Keaney");
   });
 });

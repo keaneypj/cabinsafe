@@ -177,19 +177,19 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     },
     {
       id: FEATURED_FLIGHT_ID, callsign: "CSI101", aircraftId: "ac-demo-700", departure: "KMIA", destination: "LSGG", alternates: ["LSZH", "LFLL"],
-      departAt: iso(f101Depart), arriveAt: iso(f101Depart + 8.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
+      departAt: iso(f101Depart), arriveAt: iso(f101Depart + 8.75 * H), leadId: LEAD_ID, cabinAttendantId: LEAD_ID,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
       manifest: ["pax-principal", "pax-jennifer", "pax-michael", "pax-rebecca", "pax-robert", "pax-david", "pax-copper"], status: "scheduled",
       notes: "Overnight transatlantic. Family travel with senior family members and guest.",
     },
     {
       id: "flt-csi102", callsign: "CSI102", aircraftId: "ac-demo-700", departure: "LSGG", destination: "EGLF", alternates: ["EGKK", "EGLL"],
-      departAt: iso(f102Depart), arriveAt: iso(f102Depart + 1.75 * H), leadId: LEAD_ID, cabinAttendantId: CA_CLAIRE,
+      departAt: iso(f102Depart), arriveAt: iso(f102Depart + 1.75 * H), leadId: LEAD_ID, cabinAttendantId: LEAD_ID,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID], manifest: ["pax-principal", "pax-jennifer", "pax-emily", "pax-copper"], status: "scheduled",
     },
     {
       id: "flt-csi103", callsign: "CSI103", aircraftId: "ac-demo-700", departure: "EGLF", destination: "KPBI", alternates: ["KFLL", "KMIA"],
-      departAt: iso(f103Depart), arriveAt: iso(f103Depart + 9.5 * H), leadId: LEAD_ID, cabinAttendantId: CA_SAM,
+      departAt: iso(f103Depart), arriveAt: iso(f103Depart + 9.5 * H), leadId: LEAD_ID, cabinAttendantId: LEAD_ID,
       pilotIds: [PIC_ID, SIC_ID], securityIds: [SEC_ID],
       manifest: ["pax-principal", "pax-jennifer", "pax-michael", "pax-emily", "pax-rebecca", "pax-robert", "pax-copper"], status: "planning",
     },
@@ -341,7 +341,7 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
   // ── Incomplete handover ──
   const handovers: Handover[] = [
     {
-      id: "hnd-001", flightId: FEATURED_FLIGHT_ID, outgoingId: CA_CLAIRE, incomingId: CA_SAM, createdAt: iso(now - 3 * H), createdById: CA_CLAIRE,
+      id: "hnd-001", flightId: FEATURED_FLIGHT_ID, outgoingId: CA_CLAIRE, incomingId: LEAD_ID, createdAt: iso(now - 3 * H), createdById: CA_CLAIRE,
       status: "submitted",
       openTaskIds: [c("cat-reconcile"), c("med-tele"), c("eme-flash"), checklistTaskId("flt-csi100", "pf-restock")],
       equipmentSummary: "AED-01 daily inspection due before CSI101. FAK-02 dressings restock pending (minor). FL-03 charge indicator amber, on charge (minor). O2-02 inspection due within 24 h.",
@@ -362,11 +362,11 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     { id: "aud-2", at: iso(now - 27 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "discrepancy.create", entity: "discrepancy", entityId: "dsc-fak02", flightId: "flt-csi100", summary: "Postflight discrepancy: FAK-02 adhesive dressings used — restock required" },
     { id: "aud-3", at: iso(now - 27 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "discrepancy.create", entity: "discrepancy", entityId: "dsc-fl03", flightId: "flt-csi100", summary: "Postflight discrepancy: FL-03 charge indicator amber" },
     { id: "aud-4", at: iso(now - 26 * H), actorId: LEAD_ID, actorRole: "lead", action: "discrepancy.update", entity: "discrepancy", entityId: "dsc-light", flightId: "flt-csi100", summary: "Deferred: Seat D3 reading light intermittent (reported to flight crew)" },
-    { id: "aud-5", at: iso(now - 24 * H), actorId: LEAD_ID, actorRole: "lead", action: "task.assign", entity: "flight", entityId: FEATURED_FLIGHT_ID, flightId: FEATURED_FLIGHT_ID, summary: "Assigned Sam Whitaker as cabin attendant for CSI101" },
+    { id: "aud-5", at: iso(now - 24 * H), actorId: LEAD_ID, actorRole: "lead", action: "task.assign", entity: "flight", entityId: FEATURED_FLIGHT_ID, flightId: FEATURED_FLIGHT_ID, summary: "Kate Keaney confirmed as cabin host for CSI101" },
     { id: "aud-6", at: iso(now - 10 * H), actorId: LEAD_ID, actorRole: "lead", action: "checklist.update", entity: "task", entityId: c("brf-route"), flightId: FEATURED_FLIGHT_ID, summary: "Completed: Review schedule, routing and alternates" },
     { id: "aud-7", at: iso(now - 5 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "checklist.update", entity: "task", entityId: c("cab-walk"), flightId: FEATURED_FLIGHT_ID, summary: "Completed: Cabin walkaround — seats, restraints, stowage, lavatories" },
     { id: "aud-8", at: iso(now - 3 * H), actorId: LEAD_ID, actorRole: "lead", action: "checklist.update", entity: "task", entityId: c("med-tele"), flightId: FEATURED_FLIGHT_ID, summary: "Blocked: Telemedical provider contact & connectivity test" },
-    { id: "aud-9", at: iso(now - 3 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "handover.create", entity: "handover", entityId: "hnd-001", flightId: FEATURED_FLIGHT_ID, summary: "Handover submitted: Claire Dubois → Sam Whitaker (CSI101)" },
+    { id: "aud-9", at: iso(now - 3 * H), actorId: CA_CLAIRE, actorRole: "contract_ca", action: "handover.create", entity: "handover", entityId: "hnd-001", flightId: FEATURED_FLIGHT_ID, summary: "Handover submitted: Claire Dubois → Kate Keaney (CSI101)" },
   ].sort((a, b) => b.at.localeCompare(a.at)) as AuditEvent[];
 
   // ── Items added to the cabin attendant's pre-boarding checklist by others (three for the demo) ──

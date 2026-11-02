@@ -35,7 +35,7 @@ import { uid } from "@/lib/format";
 import { upgradeToV11 } from "./migrate";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 11;
+const SCHEMA_VERSION = 12;
 /** Repeated count changes to one item by the same person within this window share one audit entry. */
 const INVENTORY_AUDIT_MERGE_MS = 5 * 60_000;
 
@@ -756,10 +756,11 @@ export const useStore = create<Store>()(
         const { hydrated, ...rest } = s;
         return Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== "function")) as Partial<Store>;
       },
-      // Versions 8–10 get the fixed-date demo data but keep their stock list and preferences (see upgradeToV11).
+      // Versions 8–11 get the current demo flights and checklists (fixed dates; Kate Keaney as cabin host)
+      // but keep their stock list, preferences and demo role (see upgradeToV11).
       // Older versions restore the seed.
       migrate: (persisted, version) =>
-        (version >= 8 && version <= 10 && persisted ? upgradeToV11(persisted as AppState, version, initialState()) : initialState()) as unknown as Store,
+        (version >= 8 && version <= 11 && persisted ? upgradeToV11(persisted as AppState, version, initialState()) : initialState()) as unknown as Store,
       onRehydrateStorage: () => (_state, error) => {
         if (error) console.warn("CabinSafe: stored demo data could not be read; using seeded data.", error);
       },
