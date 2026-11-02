@@ -330,7 +330,7 @@ html[data-intro="1"] body::before {
   background: #0c141d;
 }
 .intro-fly {
-  animation: intro-fly 4.2s cubic-bezier(0.25, 0.1, 0.3, 1) 0.1s both;
+  animation: intro-fly 2.4s cubic-bezier(0.25, 0.1, 0.3, 1) 0.05s both;
 }
 @keyframes intro-fly {
   /* The jet body is the right ~38% of the element (contrails trail to the left): start with its nose
@@ -341,7 +341,7 @@ html[data-intro="1"] body::before {
   100% { transform: translate(calc(100vw - 62%), -48px) rotate(-5deg); opacity: 0; }
 }
 .intro-brand {
-  animation: intro-brand 3.8s ease-in-out 0.4s both;
+  animation: intro-brand 2.3s ease-in-out 0.15s both;
 }
 @keyframes intro-brand {
   0% { opacity: 0; transform: translateY(8px) scale(0.98); filter: blur(4px); }
