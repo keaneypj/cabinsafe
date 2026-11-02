@@ -91,8 +91,10 @@ function FlightDetail() {
           <Card className="p-0 overflow-hidden" data-testid="flight-summary">
             <dl className="divide-y divide-[var(--separator)] text-[0.9375rem]">
               {[
-                ["Cabin host", name(flight.cabinAttendantId)],
-                ["Lead cabin attendant", name(flight.leadId)],
+                // One row when the cabin host is also the lead.
+                ...(!flight.cabinAttendantId || flight.cabinAttendantId === flight.leadId
+                  ? [["Cabin host & lead", name(flight.leadId)]]
+                  : [["Cabin host", name(flight.cabinAttendantId)], ["Lead cabin attendant", name(flight.leadId)]]),
                 ["Pilots", flight.pilotIds.map((x) => name(x)).join(", ") || "—"],
                 ["Passengers", String(flight.manifest.length)],
               ].map(([k, val]) => (

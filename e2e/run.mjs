@@ -274,9 +274,9 @@ await step("Pre-boarding: PA sends an input to the cabin attendant", async () =>
   await tid("crew-inputs").getByText("window blinds in Zone 1").waitFor();
 });
 
-await step("Pre-boarding: cabin attendant acknowledges inputs, completes checks and confirms", async () => {
+await step("Pre-boarding: cabin host (Kate) acknowledges inputs, completes checks and confirms", async () => {
   await tid("role-chip").click();
-  await tid("role-crew-ca-sam").click();
+  await tid("role-crew-lead").click();
   await go("/preboard");
   await tid("preboard-summary").waitFor();
   assert(!(await tid("preboard-confirm").isEnabled()), "sign-off should be disabled before checks are done");

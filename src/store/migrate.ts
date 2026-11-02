@@ -56,7 +56,8 @@ export interface KeptParts {
 }
 
 /**
- * Version 11 moves the demo onto fixed calendar dates (first flight Friday, Nov 6, 2026, nothing overdue).
+ * Version 11 moved the demo onto fixed calendar dates (first flight Friday, Nov 6, 2026, nothing overdue);
+ * version 12 makes Kate Keaney the cabin host. Both use this upgrade.
  * Saved flights, checklists and equipment were built around the day the demo was first opened, so they are
  * replaced with the fresh demo data. The stock list and preferences people entered are kept.
  */

@@ -33,7 +33,7 @@ describe("pre-boarding", () => {
     expect(v.checks).toHaveLength(PREBOARD_SECTIONS.reduce((n, s) => n + s.items.length, 0));
     expect(v.offboard).toHaveLength(14);
     expect(v.checks.every((t) => preboardSectionOf(t.sourceRef))).toBe(true);
-    expect(v.checks.every((t) => t.assigneeId === CA_SAM)).toBe(true);
+    expect(v.checks.every((t) => t.assigneeId === LEAD_ID)).toBe(true); // Kate is cabin host and lead
     expect(v.inputs.map((i) => i.fromRole).sort()).toEqual(["assistant", "lead", "pilot"]);
     expect(v.pendingAcks).toHaveLength(3);
     expect(v.passengerItems.length).toBeGreaterThan(0);
@@ -70,9 +70,14 @@ describe("pre-boarding", () => {
     const s = createSeed(NOW);
     const f = s.flights.find((x) => x.id === FEATURED_FLIGHT_ID)!;
     const by = (id: string) => s.crew.find((c) => c.id === id)!;
-    expect(isPreboardOwner(by(CA_SAM), f)).toBe(true);
+    expect(f.cabinAttendantId).toBe(LEAD_ID);
     expect(isPreboardOwner(by(LEAD_ID), f)).toBe(true);
-    expect(isPreboardOwner(by("crew-ca-claire"), f)).toBe(false);
+    expect(isPreboardOwner(by(CA_SAM), f)).toBe(false);
+    // A contract cabin attendant owns pre-boarding on a flight they are assigned to.
+    const samsFlight = { ...f, cabinAttendantId: CA_SAM };
+    expect(isPreboardOwner(by(CA_SAM), samsFlight)).toBe(true);
+    expect(isPreboardOwner(by(LEAD_ID), samsFlight)).toBe(true);
+    expect(isPreboardOwner(by("crew-ca-claire"), samsFlight)).toBe(false);
     expect(isPreboardOwner(by("crew-pic"), f)).toBe(false);
   });
 
