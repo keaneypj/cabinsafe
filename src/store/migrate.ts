@@ -47,3 +47,20 @@ export function upgradeToV10<T extends V10Parts>(state: T, nowMs: number = Date.
 
   return { ...state, tasks: [...kept, ...added], equipment, inventory, preferences: state.preferences ?? createPreferences() };
 }
+
+/** The parts of saved demo data that carry over into version 11. */
+export interface KeptParts {
+  currentUserId: string;
+  inventory?: InventoryItem[];
+  preferences?: PreferencePerson[];
+}
+
+/**
+ * Version 11 moves the demo onto fixed calendar dates (first flight Friday, Nov 6, 2026, nothing overdue).
+ * Saved flights, checklists and equipment were built around the day the demo was first opened, so they are
+ * replaced with the fresh demo data. The stock list and preferences people entered are kept.
+ */
+export function upgradeToV11<F extends KeptParts>(saved: V10Parts & KeptParts, version: number, fresh: F, nowMs: number = Date.now()): F {
+  const v10 = version < 10 ? upgradeToV10(saved, nowMs) : saved;
+  return { ...fresh, currentUserId: v10.currentUserId ?? fresh.currentUserId, inventory: v10.inventory ?? fresh.inventory, preferences: v10.preferences ?? fresh.preferences };
+}

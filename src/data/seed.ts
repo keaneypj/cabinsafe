@@ -125,12 +125,6 @@ function iso(ms: number): string {
   return new Date(ms).toISOString();
 }
 
-/** Round to the next quarter hour so schedules look natural. */
-function quarter(ms: number): number {
-  const q = 15 * 60_000;
-  return Math.ceil(ms / q) * q;
-}
-
 export interface SeedState {
   seededAt: string;
   flights: Flight[];
@@ -160,15 +154,19 @@ function history(now: number, intervalDays: number, count: number, byIds: string
   return out.reverse();
 }
 
+/** Earliest due time for any open seeded task: 6:00am Miami on Friday, Nov 6, 2026 (day of the first flight). */
+export const DEMO_FIRST_DUE = "2026-11-06T11:00:00.000Z";
+
 export function createSeed(nowMs: number = Date.now()): SeedState {
   const now = nowMs;
   const nowIso = iso(now);
 
   // ── Flights ──
-  const f101Depart = quarter(now + 20 * H);
-  const f102Depart = quarter(now + 3 * D + 2 * H);
-  const f103Depart = quarter(now + 6 * D + 5 * H);
-  const f100Depart = quarter(now - 30 * H);
+  // Fixed calendar dates for the Nov 4, 2026 demo: the next flight is Friday, Nov 6.
+  const f100Depart = Date.parse("2026-11-01T14:00:00Z"); // Sun Nov 1, 9:00am Teterboro (completed)
+  const f101Depart = Date.parse("2026-11-06T23:00:00Z"); // Fri Nov 6, 6:00pm Miami
+  const f102Depart = Date.parse("2026-11-09T13:00:00Z"); // Mon Nov 9, 2:00pm Geneva
+  const f103Depart = Date.parse("2026-11-12T14:00:00Z"); // Thu Nov 12, 2:00pm Farnborough
 
   const flights: Flight[] = [
     {
@@ -238,6 +236,8 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
   done(checklistTaskId("flt-csi100", "pf-clean"), CA_CLAIRE, 25);
   done(checklistTaskId("flt-csi100", "pf-confid"), LEAD_ID, 26);
   patch(checklistTaskId("flt-csi100", "pf-restock"), { status: "in_progress", notes: "Dressing restock ordered; awaiting delivery to FBO.", assigneeId: CA_CLAIRE });
+  // CSI100 off-boarding was finished on arrival.
+  for (const t of tasks.filter((x) => x.flightId === "flt-csi100" && x.category === "offboarding")) done(t.id, CA_CLAIRE, 25);
 
   // CSI101 — partially prepared
   const c = (k: string) => checklistTaskId(FEATURED_FLIGHT_ID, k);
@@ -257,6 +257,10 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
   done(g("pax-david", "dietary"), LEAD_ID, 8, { reviewed: true });
   done(g("pax-copper", "acc-copper-1:docs"), PA_ID, 30, { reviewed: true, notes: "PA confirmed via official Swiss government guidance. Certificate copy held by PA." });
 
+  // Nothing open is due before the morning of the first flight (6:00am Miami, Fri Nov 6),
+  // so the demo shows no overdue items before then.
+  for (const t of tasks) if (t.status !== "completed" && t.dueAt && t.dueAt < DEMO_FIRST_DUE) t.dueAt = DEMO_FIRST_DUE;
+
   // ── Equipment ──
   const aedChecks = ["Status indicator shows ready", "Electrode pads sealed and within expiry", "Battery indicator acceptable", "Unit present and secured in stowage"];
   const kitChecks = ["Seal intact", "Contents within expiry", "Stowage secure"];
@@ -271,12 +275,12 @@ export function createSeed(nowMs: number = Date.now()): SeedState {
     ...e,
   });
 
-  // Inspection dates are fixed calendar dates set for the Nov 4, 2026 demo: everything is current that day
-  // except AED-01 (daily check) and TMS-01, which show as overdue so the overdue display can be seen working.
+  // Inspection dates are fixed calendar dates for the Nov 4, 2026 demo: last checked by Nov 2,
+  // next due Nov 8 or later, so nothing shows as overdue or due soon through the first flight.
   const equipment: Equipment[] = [
-    eq({ id: "eq-aed-01", code: "AED-01", name: "Automated External Defibrillator", category: "aed", zone: "GALLEY", x: 236, y: 214, status: "inspection_due", critical: true, lastInspectionAt: "2026-11-01T15:00:00.000Z", nextInspectionDue: "2026-11-02T15:00:00.000Z", expiresAt: "2027-06-30T00:00:00.000Z", inspectionIntervalDays: 1, serialMasked: "AED-••••-4471", checklist: aedChecks, documentIds: ["CSI-OPS-001", "CSI-MED-002"] }),
+    eq({ id: "eq-aed-01", code: "AED-01", name: "Automated External Defibrillator", category: "aed", zone: "GALLEY", x: 236, y: 214, status: "serviceable", critical: true, lastInspectionAt: "2026-11-02T14:00:00.000Z", nextInspectionDue: "2026-11-09T14:00:00.000Z", expiresAt: "2027-06-30T00:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "AED-••••-4471", checklist: aedChecks, documentIds: ["CSI-OPS-001", "CSI-MED-002"] }),
     eq({ id: "eq-emk-01", code: "EMK-01", name: "Emergency Medical Kit", category: "medical_kit", zone: "GALLEY", x: 64, y: 214, status: "serviceable", critical: true, lastInspectionAt: "2026-11-01T14:00:00.000Z", nextInspectionDue: "2026-11-08T14:00:00.000Z", expiresAt: "2027-03-31T00:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "EMK-••••-0193", checklist: kitChecks, documentIds: ["CSI-OPS-001", "CSI-MED-002"] }),
-    eq({ id: "eq-tms-01", code: "TMS-01", name: "Telemedical Link Kit", category: "telemedical", zone: "GALLEY", x: 168, y: 200, status: "inspection_due", critical: false, lastInspectionAt: "2026-10-26T14:00:00.000Z", nextInspectionDue: "2026-11-02T14:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "TMS-••••-8820", checklist: ["Device charged", "Provider contact card current", "Vital-signs peripherals present"], documentIds: ["CSI-MED-002"] }),
+    eq({ id: "eq-tms-01", code: "TMS-01", name: "Telemedical Link Kit", category: "telemedical", zone: "GALLEY", x: 168, y: 200, status: "serviceable", critical: false, lastInspectionAt: "2026-11-01T14:00:00.000Z", nextInspectionDue: "2026-11-08T14:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "TMS-••••-8820", checklist: ["Device charged", "Provider contact card current", "Vital-signs peripherals present"], documentIds: ["CSI-MED-002"] }),
     eq({ id: "eq-fak-01", code: "FAK-01", name: "First-Aid Kit", category: "first_aid", zone: "Z2", x: 236, y: 427, status: "serviceable", critical: true, lastInspectionAt: "2026-11-02T13:00:00.000Z", nextInspectionDue: "2026-11-09T13:00:00.000Z", expiresAt: "2027-04-30T00:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "FAK-••••-2210", checklist: kitChecks }),
     eq({ id: "eq-fak-02", code: "FAK-02", name: "First-Aid Kit", category: "first_aid", zone: "Z5", x: 92, y: 836, status: "discrepancy", critical: true, lastInspectionAt: "2026-11-01T16:00:00.000Z", nextInspectionDue: "2026-11-08T16:00:00.000Z", expiresAt: "2027-02-28T00:00:00.000Z", inspectionIntervalDays: 7, serialMasked: "FAK-••••-2211", checklist: kitChecks }),
     eq({ id: "eq-fe-01", code: "FE-01", name: "Fire Extinguisher", category: "fire_extinguisher", zone: "FLIGHTDECK", x: 192, y: 128, status: "serviceable", critical: true, lastInspectionAt: "2026-10-21T15:00:00.000Z", nextInspectionDue: "2026-11-20T15:00:00.000Z", inspectionIntervalDays: 30, serialMasked: "FE-••••-7101", checklist: feChecks }),

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { ClipboardCheck, Ellipsis, Heart, House, LayoutGrid, PlaneTakeoff, WifiOff } from "lucide-react";
+import { ClipboardCheck, Ellipsis, Heart, House, LayoutGrid, WifiOff } from "lucide-react";
 import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
@@ -16,11 +16,10 @@ import { Skeleton, Toaster } from "./ui";
 
 const NAV = [
   { href: "/", label: "Home", icon: House, match: (p: string) => p === "/" },
-  { href: "/flights", label: "Flights", icon: PlaneTakeoff, match: (p: string) => p.startsWith("/flights") },
   { href: "/preboard", label: "Boarding", icon: ClipboardCheck, match: (p: string) => p.startsWith("/preboard") },
   { href: "/cabin", label: "Cabin", icon: LayoutGrid, match: (p: string) => p.startsWith("/cabin") },
   { href: "/preferences", label: "Preferences", icon: Heart, match: (p: string) => p.startsWith("/preferences") },
-  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/flights", "/preboard", "/cabin", "/preferences"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
+  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/preboard", "/cabin", "/preferences"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
 ];
 
 function useOnline(): boolean {

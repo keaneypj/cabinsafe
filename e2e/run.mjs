@@ -88,11 +88,16 @@ await step("Opening sequence can be skipped", async () => {
   await fresh.close();
 });
 
-await step("Home dashboard loads with featured flight and Not Ready blocker", async () => {
+await step("Home dashboard loads with featured flight and readiness", async () => {
   await go("/");
   await tid("featured-flight").waitFor();
+  await tid("preboard-card").waitFor();
+  // Readiness is on the flight page; Home only shows pre-boarding and the next flight.
+  await go("/flights/flt-csi101");
+  await tid("readiness-toggle").click(); // readiness detail is folded on the flight page
   const headline = await tid("readiness-headline").first().innerText();
-  assert(/Not Ready/.test(headline), `unexpected headline: ${headline}`);
+  // The demo data has nothing overdue, so the next flight needs attention but is not blocked.
+  assert(/Attention Required|Not Ready/.test(headline), `unexpected headline: ${headline}`);
   await page.screenshot({ path: `${OUT}01-home.png` });
 });
 
@@ -166,7 +171,8 @@ await step("4b. Lead CA reviews a generated task", async () => {
 
 let beforeIndex = 0;
 await step("5. Open an equipment marker on the cabin map", async () => {
-  await go("/");
+  await go("/flights/flt-csi101");
+  await tid("readiness-toggle").click(); // readiness detail is folded on the flight page
   beforeIndex = Number(await tid("readiness-index").first().innerText());
   await go("/cabin");
   await tid("cabin-map").waitFor();
@@ -188,11 +194,12 @@ await step("6. Complete an equipment inspection", async () => {
 });
 
 await step("7. Readiness dashboard updates after inspection", async () => {
-  await go("/");
+  await go("/flights/flt-csi101");
+  await tid("readiness-toggle").click(); // readiness detail is folded on the flight page
   const after = Number(await tid("readiness-index").first().innerText());
-  assert(after > beforeIndex, `index did not increase (${beforeIndex} → ${after})`);
+  assert(after >= beforeIndex, `index went down (${beforeIndex} → ${after})`);
   const headline = await tid("readiness-headline").first().innerText();
-  assert(!/AED/.test(await tid("featured-flight").innerText()) || !/inspection due/.test(await tid("featured-flight").innerText()), "AED blocker still shown");
+  assert(!/AED-01.*inspection due/i.test(await page.locator("main").innerText()), "AED blocker still shown");
   console.log(`      readiness ${beforeIndex} → ${after} · ${headline}`);
 });
 
@@ -307,8 +314,9 @@ await step("13. Reset the demonstration", async () => {
 });
 
 await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
-  await go("/");
-  await tid("experience-cta").click();
+  await go("/more"); // the guided demo starts from More → Experience CabinSafe
+  await tid("more-advanced").click();
+  await tid("more-experience").click();
   await tid("demo-begin").click();
   await tid("demo-coach").waitFor();
   await demoNext(); // step 1 → 2

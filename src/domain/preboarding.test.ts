@@ -7,12 +7,16 @@ import { boardingTime, computePreboarding, isPreboardOwner, type PreboardInput }
 
 const NOW = Date.UTC(2026, 10, 4, 14, 0); // demo day
 
+/** The demo data has nothing overdue, so readiness tests make the AED overdue themselves. */
+const aedOverdue = (equipment: ReturnType<typeof createSeed>["equipment"]) =>
+  equipment.map((e) => (e.code === "AED-01" ? { ...e, status: "inspection_due" as const, nextInspectionDue: new Date(NOW - 2 * 3_600_000).toISOString() } : e));
+
 function input(patch: Partial<PreboardInput> = {}): PreboardInput {
   const s = createSeed(NOW);
   return {
     flight: s.flights.find((f) => f.id === FEATURED_FLIGHT_ID)!,
     tasks: s.tasks,
-    equipment: s.equipment,
+    equipment: aedOverdue(s.equipment),
     discrepancies: s.discrepancies,
     advisories: s.advisories,
     acks: [],
@@ -85,14 +89,16 @@ describe("pre-boarding", () => {
 });
 
 describe("demo-day equipment dates", () => {
-  it("shows everything current on Nov 4, 2026 except two overdue items", () => {
+  it("shows every item current from the demo through the first flight", () => {
     const s = createSeed(NOW);
-    const overdue = s.equipment.filter((e) => effectiveEquipmentStatus(e, NOW) === "inspection_due").map((e) => e.code);
-    expect(overdue.sort()).toEqual(["AED-01", "TMS-01"]);
+    const flightDay = Date.parse("2026-11-06T23:00:00Z");
+    for (const at of [NOW, flightDay]) {
+      const flagged = s.equipment.filter((e) => ["inspection_due", "due_soon", "unserviceable"].includes(effectiveEquipmentStatus(e, at))).map((e) => e.code);
+      expect(flagged).toEqual([]);
+    }
     for (const e of s.equipment) {
       expect(e.lastInspectionAt! <= "2026-11-02T23:59:59.999Z").toBe(true);
-      if (!overdue.includes(e.code)) expect(e.nextInspectionDue >= "2026-11-05").toBe(true);
+      expect(e.nextInspectionDue >= "2026-11-08").toBe(true);
     }
-    expect(s.equipment.filter((e) => effectiveEquipmentStatus(e, NOW) === "due_soon")).toEqual([]);
   });
 });

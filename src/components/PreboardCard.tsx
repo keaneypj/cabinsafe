@@ -36,9 +36,9 @@ export function usePreboardFlight(): Flight | undefined {
   return (me.role === "contract_ca" ? upcoming.find((f) => f.cabinAttendantId === me.id) : undefined) ?? featured;
 }
 
-/** Items the cabin attendant still has to tick: everyday checks plus items added by others. */
+/** Pre-boarding checks still to tick — the same number as the "0/33" count on Home and Boarding. */
 export function remainingItems(v: PreboardView): number {
-  return v.signoff ? 0 : v.checks.filter(isOpenTask).length + v.pendingAcks.length;
+  return v.signoff ? 0 : v.checks.filter(isOpenTask).length;
 }
 
 /** Prominent "Start here" card for Home — the first thing to do before a flight. */
@@ -99,15 +99,13 @@ export function PreboardCard({ flight }: { flight: Flight }) {
         <div className="mt-3 text-sm text-ok">Pre-boarding confirmed by {name(v.signoff.byId)} · {fmtRelative(v.signoff.at, now)}</div>
       ) : (
         <>
-          <div className="mt-3 flex justify-between text-[0.6875rem] text-slate mb-1">
-            <span>
-              {v.pendingAcks.length > 0 && <span className="text-warn">{v.pendingAcks.length} from others · </span>}
-              {v.attention.length > 0 && <span className="text-warn">{v.attention.length} need attention · </span>}
-              {openChecks} check{openChecks === 1 ? "" : "s"} open
+          <div className="mt-3 flex justify-between text-[0.75rem] text-slate mb-1">
+            <span>Checklist</span>
+            <span className="tnum text-ivory">
+              {v.checks.length - openChecks}/{v.checks.length} done
             </span>
-            <span className="tnum text-ivory">{v.progress.pct}%</span>
           </div>
-          <ProgressBar value={v.progress.pct} tone={v.progress.pct === 100 ? "ok" : "gold"} label="Pre-boarding progress" />
+          <ProgressBar value={v.checks.length ? ((v.checks.length - openChecks) / v.checks.length) * 100 : 100} tone={openChecks === 0 ? "ok" : "gold"} label="Pre-boarding checklist progress" />
         </>
       )}
     </Link>

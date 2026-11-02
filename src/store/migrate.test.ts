@@ -6,7 +6,7 @@ import { createSeed, FEATURED_FLIGHT_ID } from "@/data/seed";
 import { checklistTaskId } from "@/domain/checklists";
 import { validatePersonName, validatePreferenceText } from "@/domain/preferences";
 import type { InventoryItem, Task } from "@/domain/types";
-import { upgradeToV10 } from "./migrate";
+import { upgradeToV10, upgradeToV11 } from "./migrate";
 
 const NOW = Date.UTC(2026, 10, 2, 12, 0);
 
@@ -41,7 +41,7 @@ describe("upgrading saved demo data to version 10", () => {
 
   it("sets the demo-day equipment dates and keeps open discrepancies", () => {
     const aed = up.equipment.find((e) => e.code === "AED-01")!;
-    expect(aed.nextInspectionDue).toBe("2026-11-02T15:00:00.000Z");
+    expect(aed.nextInspectionDue).toBe("2026-11-09T14:00:00.000Z");
     expect(up.equipment.find((e) => e.code === "FAK-02")!.status).toBe("discrepancy");
     expect(up.equipment.every((e) => e.lastInspectionAt! <= "2026-11-02T23:59:59.999Z")).toBe(true);
   });
@@ -58,6 +58,21 @@ describe("upgrading saved demo data to version 10", () => {
     expect(up.preferences).toEqual(createPreferences());
     const mine = [{ ...createPreferences()[0], name: "Real name" }];
     expect(upgradeToV10({ ...v9State(), preferences: mine }, NOW).preferences).toBe(mine);
+  });
+});
+
+describe("upgrading saved demo data to version 11", () => {
+  it("swaps in the fixed-date demo but keeps stock, preferences and the demo role", () => {
+    const fresh = { ...createSeed(NOW), currentUserId: "crew-lead", inventory: [] as InventoryItem[], preferences: createPreferences() };
+    const saved = { ...upgradeToV10(v9State(), NOW), currentUserId: "crew-pic", preferences: [{ ...createPreferences()[0], name: "Kept" }] };
+    for (const [state, version] of [[saved, 10], [v9State(), 9]] as const) {
+      const up = upgradeToV11({ ...state, currentUserId: "crew-pic" }, version, fresh, NOW);
+      expect(up.flights).toBe(fresh.flights);
+      expect(up.tasks).toBe(fresh.tasks);
+      expect(up.currentUserId).toBe("crew-pic");
+      expect(up.inventory.find((i) => i.id === "inv-red-wine")).toMatchObject({ par: 6, onBoard: 4, category: "bar" });
+    }
+    expect(upgradeToV11(saved, 10, fresh, NOW).preferences[0].name).toBe("Kept");
   });
 });
 

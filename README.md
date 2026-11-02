@@ -16,7 +16,7 @@ CabinSafe is a working Progressive Web App, not a mockup. It brings together six
 | **AI Safety Copilot** | Retrieval over a versioned demonstration document library plus current flight records, with citations and hard guardrails. A one-tap ten-section **Flight Safety Briefing** with copy/export/print. Live Claude answers when `ANTHROPIC_API_KEY` is set; otherwise a clearly labelled deterministic assistant. |
 | **Crew Coordination & Handovers** | Cabin attendant assignment, task assignment and queues, acknowledgements, structured handovers with acceptance, and a time-stamped audit history. **Demo Role Preview** for switching perspectives. |
 
-The mobile navigation is **Home · Flights · Boarding · Cabin · Preferences · More** (Copilot and Documents are under More). **Preferences** holds the principal's and frequent passengers' preferences in eight categories, with Add Person and add / edit / delete for each preference, saved on the device. **Documents** has Training Manuals, Safety Manuals and Handover Documents; add real files in `public/files/` and list them in `src/data/library.ts`. The pre-boarding checklist is also the top card on Home: cabin attendants see their own next flight, everyone else sees the next departure.
+The mobile navigation is **Home · Boarding · Cabin · Preferences · More**. The demo is kept deliberately simple: Home shows only the Pre-Boarding card and the next flight; More lists Flights, Documents, Passenger Profiles, Safety Copilot, Reset Demo and About, with Risk Intelligence, Discrepancies, Crew, Handovers, Audit History, the guided tour, role preview and appearance folded under **Advanced**. Boarding hides Needs attention and Passenger-specific, and each flight opens on a plain summary with readiness one tap away. Nothing was removed, so any of it can be brought back. **Preferences** holds the principal's and frequent passengers' preferences in eight categories, with Add Person and add / edit / delete for each preference, saved on the device. **Documents** has Training Manuals, Safety Manuals and Handover Documents; add real files in `public/files/` and list them in `src/data/library.ts`. The pre-boarding checklist is also the top card on Home: cabin attendants see their own next flight, everyone else sees the next departure.
 
 An **opening sequence** plays on the first visit to the home page in each browser session: a jet crossing the screen, the CabinSafe wordmark, a dedication to the recipient, then the candidate's introduction. It ends with a choice between the guided tour and free exploration. It can be skipped, respects reduced-motion settings, and can be replayed from *More → Replay Intro* (or `/?intro=1`). Its copy lives in `src/components/Intro.tsx`.
 
@@ -69,7 +69,7 @@ src/
     copilot.ts            Guardrails, intent routing, record-grounded answers
     retrieval.ts          BM25 retrieval over approved documents only
     permissions.ts        Demo Role Preview permission matrix
-  data/                   Synthetic seed (flight times relative to "now"; equipment inspection dates fixed for the Nov 4, 2026 demo), aircraft, airports, documents
+  data/                   Synthetic seed on fixed dates for the Nov 4, 2026 demo (first flight Fri Nov 6; nothing open due before that morning), aircraft, airports, documents
   store/                  Zustand store: audited, permission-checked actions + persistence
   components/             Design system, cabin map, sheets, coach, etc.
   lib/                    Formatting, feed fetchers and defensive parsers
