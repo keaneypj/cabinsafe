@@ -32,6 +32,8 @@ export interface AttentionItem {
 export interface PreboardView {
   boardingAt: string;
   checks: Task[];
+  /** Off-boarding checklist, ticked after the passengers leave. Not part of pre-boarding progress or sign-off. */
+  offboard: Task[];
   passengerItems: Task[];
   inputs: CrewInput[];
   pendingAcks: CrewInput[];
@@ -67,6 +69,7 @@ export function computePreboarding(input: PreboardInput): PreboardView {
   const readiness = computeReadiness(input);
   const flightTasks = input.tasks.filter((t) => t.flightId === flight.id && t.phase === "preflight");
   const checks = flightTasks.filter((t) => t.category === "preboarding");
+  const offboard = input.tasks.filter((t) => t.flightId === flight.id && t.category === "offboarding");
   const passengerItems = flightTasks.filter((t) => t.source === "passenger_rule" && t.status !== "not_applicable");
   const inputs = input.inputs.filter((i) => i.flightId === flight.id).sort((a, b) => PRIORITY[a.priority] - PRIORITY[b.priority] || b.createdAt.localeCompare(a.createdAt));
   const pendingAcks = inputs.filter((i) => i.requiresAck && i.acks.length === 0);
@@ -116,6 +119,7 @@ export function computePreboarding(input: PreboardInput): PreboardView {
   return {
     boardingAt: boardingTime(flight),
     checks,
+    offboard,
     passengerItems,
     inputs,
     pendingAcks,

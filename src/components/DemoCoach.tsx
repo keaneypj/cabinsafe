@@ -46,7 +46,7 @@ export const DEMO_STEPS: DemoStep[] = [
   {
     key: "aed",
     title: "Inspect the Aircraft",
-    body: "Open the interactive cabin map, select the AED (pulsing amber), and complete the demonstration inspection. Watch the dashboard update.",
+    body: "Open the interactive cabin map, select the AED (pulsing amber), tap Maintenance details and complete the demonstration inspection. Watch the dashboard update.",
     route: "/cabin?eq=eq-aed-01",
     cta: "Open cabin map",
     done: (s) => !!s.demo.done.aed,

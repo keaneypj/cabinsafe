@@ -6,15 +6,18 @@ export type StockLevel = "full" | "low" | "out";
 export const MAX_COUNT = 99;
 
 export const CATEGORY_LABELS: Record<InventoryCategory, string> = {
-  wine: "Wine",
-  soft_drinks: "Soft drinks",
-  fresh: "Milk & juice",
-  snacks: "Snacks",
-  coffee: "Coffee",
+  galley: "Galley",
+  bar: "Bar",
+  serviceware: "Serviceware",
+  linens: "Linens",
+  lav: "Lav supplies",
+  cabin: "Cabin supplies",
+  first_aid: "First aid",
+  emergency: "Emergency equipment",
   other: "Other",
 };
 
-export const CATEGORY_ORDER: InventoryCategory[] = ["wine", "soft_drinks", "fresh", "snacks", "coffee", "other"];
+export const CATEGORY_ORDER: InventoryCategory[] = ["galley", "bar", "serviceware", "linens", "lav", "cabin", "first_aid", "emergency", "other"];
 
 export interface InventoryItemInput {
   name: string;
@@ -22,9 +25,11 @@ export interface InventoryItemInput {
   par: number | string;
   /** Only used when adding an item; counts are otherwise logged from the list. */
   onBoard?: number | string;
+  /** Usual amount confirmed against the real aircraft. */
+  verified?: boolean;
 }
 
-export type ValidItem = { name: string; category: InventoryCategory; par: number; onBoard: number };
+export type ValidItem = { name: string; category: InventoryCategory; par: number; onBoard: number; verified: boolean };
 
 /**
  * Checks an item being added or edited. `editingId` is the item being edited,
@@ -40,7 +45,7 @@ export function validateInventoryItem(input: InventoryItemInput, existing: Inven
   if (par === null || par < 1) return { ok: false, error: `Set the usual amount to a whole number from 1 to ${MAX_COUNT}.` };
   const onBoard = input.onBoard === undefined || input.onBoard === "" ? 0 : parseCount(input.onBoard);
   if (onBoard === null) return { ok: false, error: `Set the amount on board to a whole number from 0 to ${MAX_COUNT}.` };
-  return { ok: true, value: { name, category: input.category, par, onBoard } };
+  return { ok: true, value: { name, category: input.category, par, onBoard, verified: !!input.verified } };
 }
 
 export function stockLevel(item: Pick<InventoryItem, "onBoard" | "par">): StockLevel {
@@ -61,6 +66,8 @@ export interface InventorySummary {
   full: number;
   low: number;
   out: number;
+  /** Items whose usual amount hasn't been confirmed on the aircraft yet. */
+  toVerify: number;
   /** Items below their usual stock, most urgent first, with how many are needed. */
   restock: { item: InventoryItem; need: number }[];
   lastUpdatedAt?: string;
@@ -79,6 +86,7 @@ export function summarizeInventory(items: InventoryItem[]): InventorySummary {
     full: levels.filter((l) => l === "full").length,
     low: levels.filter((l) => l === "low").length,
     out: levels.filter((l) => l === "out").length,
+    toVerify: items.filter((i) => !i.verified).length,
     restock,
     lastUpdatedAt: latest?.updatedAt,
     lastUpdatedById: latest?.updatedById,

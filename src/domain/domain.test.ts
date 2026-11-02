@@ -7,7 +7,7 @@ import { computeReadiness, effectiveEquipmentStatus } from "./readiness";
 import { retrieve } from "./retrieval";
 import { generateTasksForPassenger } from "./rules";
 
-const NOW = Date.UTC(2026, 9, 26, 14, 0);
+const NOW = Date.UTC(2026, 10, 4, 14, 0); // demo day
 
 function ctx(overrides: Partial<FlightContext> = {}): FlightContext {
   const s = createSeed(NOW);

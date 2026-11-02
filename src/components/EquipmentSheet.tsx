@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { ArrowRight, BookOpen, Check, CircleAlert, CircleCheck, ClipboardCheck, History, OctagonAlert, Plus, X } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CircleAlert, CircleCheck, ClipboardCheck, History, Image as ImageIcon, OctagonAlert, Plus, X } from "lucide-react";
 import { AIRCRAFT } from "@/data/aircraft";
+import { EQUIPMENT_DESCRIPTIONS, equipmentPhotoSrc } from "@/data/equipmentInfo";
 import { can } from "@/domain/permissions";
 import { computeReadiness, effectiveEquipmentStatus } from "@/domain/readiness";
 import type { Severity } from "@/domain/types";
-import { cx, fmtDateTime, fmtRelative } from "@/lib/format";
+import { cx, fmtDate, fmtDateTime, fmtRelative } from "@/lib/format";
 import { useCrewName, useFeaturedFlight, useFlightAdvisories, useNow } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
 import { CATEGORY_META, STATUS_STYLE } from "./CabinMap";
@@ -35,8 +36,11 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
   const [resolveId, setResolveId] = useState<string | null>(null);
   const [resolution, setResolution] = useState("");
   const [err, setErr] = useState<string>();
+  // The popup opens on the simple view; inspection tools sit behind "Maintenance details".
+  const [details, setDetails] = useState(false);
 
   useEffect(() => {
+    setDetails(false);
     setMode("record");
     setChecks({});
     setNotes("");
@@ -106,7 +110,7 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
         </span>
       }
       footer={
-        mode === "record" && canInspect ? (
+        !details ? undefined : mode === "record" && canInspect ? (
           <>
             <Button variant="secondary" className="flex-1" onClick={() => setMode("report")} data-testid="eq-report">
               <Plus className="size-4" /> Discrepancy
@@ -136,6 +140,36 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
         ) : undefined
       }
     >
+      {!details && (
+        <div data-testid="eq-simple">
+          <section>
+            <h3 className="eyebrow mb-1">What it is</h3>
+            <p className="text-[0.9375rem] leading-snug text-ivory" data-testid="eq-what">
+              {EQUIPMENT_DESCRIPTIONS[e.category]}
+            </p>
+          </section>
+          <section className="mt-4">
+            <h3 className="eyebrow mb-1">Last checked by maintenance</h3>
+            <p className="text-[0.9375rem] text-ivory" data-testid="eq-last-checked">
+              {e.lastInspectionAt ? `${fmtDate(e.lastInspectionAt)} · ${fmtRelative(e.lastInspectionAt, now)}` : "Not recorded"}
+            </p>
+            {status === "inspection_due" && <p className="mt-0.5 text-[0.8125rem] font-medium text-warn" data-testid="eq-overdue">Check overdue · was due {fmtDate(e.nextInspectionDue)}</p>}
+          </section>
+          <section className="mt-4">
+            <h3 className="eyebrow mb-1.5">Where it is{zone ? ` · ${zone.name}` : ""}</h3>
+            <LocationPhoto code={e.code} name={e.name} />
+          </section>
+          <button className="mt-4 min-h-10 text-[0.8125rem] text-slate-400 hover:text-ivory underline-offset-2 hover:underline" onClick={() => setDetails(true)} data-testid="eq-details">
+            Maintenance details
+          </button>
+        </div>
+      )}
+
+      {details && (
+        <>
+      <button className="mb-2 min-h-9 text-[0.8125rem] text-gold" onClick={() => { setDetails(false); setMode("record"); }} data-testid="eq-back">
+        ‹ Back
+      </button>
       <VerifyNotice compact className="mb-3" />
 
       {mode === "done" && result && (
@@ -322,8 +356,30 @@ export function EquipmentSheet({ equipmentId, onClose }: { equipmentId: string |
           {dSev === "critical" && <Notice tone="bad">Critical discrepancies on emergency or medical equipment must be reported to the PIC immediately (CSI-OPS-001 §4). This will set the flight status to Not Ready.</Notice>}
         </div>
       )}
+        </>
+      )}
     </Sheet>
   );
+}
+
+/** Location photo from public/equipment-photos/<CODE>.jpg, with a placeholder until one is added. */
+function LocationPhoto({ code, name }: { code: string; name: string }) {
+  const src = equipmentPhotoSrc(code);
+  const [missing, setMissing] = useState(false);
+  useEffect(() => setMissing(false), [src]);
+  if (missing) {
+    return (
+      <div className="grid aspect-[4/3] w-full place-items-center rounded-xl border border-dashed border-slate-500/50 bg-navy-700 p-4 text-center" data-testid="eq-photo-placeholder">
+        <span>
+          <ImageIcon className="mx-auto size-8 text-slate-500" />
+          <span className="mt-2 block text-[0.875rem] text-slate-400">Location photo coming soon</span>
+          <span className="mt-0.5 block text-[0.6875rem] text-slate-500">Placeholder · add equipment-photos/{code}.jpg</span>
+        </span>
+      </div>
+    );
+  }
+  // eslint-disable-next-line @next/next/no-img-element -- user-supplied photos of any size; no optimisation needed for a demo
+  return <img src={src} alt={`Where the ${name} (${code}) is stowed`} className="aspect-[4/3] w-full rounded-xl object-cover bg-navy-700" onError={() => setMissing(true)} data-testid="eq-photo" />;
 }
 
 function Item({ label, value, tone }: { label: string; value: string; tone?: "bad" }) {

@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useState, type ReactNode } from "react";
-import { ChevronRight, Minus, PackageCheck, PackagePlus, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronRight, Minus, PackageCheck, PackagePlus, Plus, Trash2 } from "lucide-react";
 import { Badge, Button, Card, ConfirmDialog, EmptyState, Field, Notice, ProgressBar, report, SectionHeader, Sheet, type Tone } from "@/components/ui";
 import { CATEGORY_LABELS, CATEGORY_ORDER, groupInventory, MAX_COUNT, parseCount, stockLevel, summarizeInventory, type StockLevel } from "@/domain/inventory";
 import { can } from "@/domain/permissions";
 import type { InventoryCategory, InventoryItem } from "@/domain/types";
-import { fmtRelative } from "@/lib/format";
+import { cx, fmtRelative } from "@/lib/format";
 import { useCrewName, useNow } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
 
@@ -29,6 +29,8 @@ export function CabinInventory() {
   const now = useNow();
   const [confirmFill, setConfirmFill] = useState(false);
   const [editing, setEditing] = useState(false);
+  // Categories start folded so the long list is easy to scan; the restock list sits above them.
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => new Set());
   const [sheet, setSheet] = useState<SheetTarget | null>(null);
   // Stable so the open sheet doesn't re-run its focus handling when the clock ticks.
   const closeSheet = useCallback(() => setSheet(null), []);
@@ -64,6 +66,11 @@ export function CabinInventory() {
         <div className="mt-3">
           <ProgressBar value={sum.total ? (sum.full / sum.total) * 100 : 0} tone={sum.out ? "bad" : sum.low ? "warn" : "ok"} label="Items at usual stock" />
         </div>
+        {sum.toVerify > 0 && (
+          <p className="text-[0.8125rem] text-gold mt-2.5" data-testid="inventory-to-verify">
+            {sum.toVerify === sum.total ? "All" : sum.toVerify} amounts to be verified against the aircraft
+          </p>
+        )}
         {sum.lastUpdatedAt && (
           <p className="text-[0.75rem] text-slate-500 mt-2">
             Last logged {fmtRelative(sum.lastUpdatedAt, now)}
@@ -114,9 +121,25 @@ export function CabinInventory() {
         </EmptyState>
       )}
 
-      {groupInventory(items).map((g) => (
-        <section key={g.category}>
-          <SectionHeader title={g.label} />
+      {groupInventory(items).map((g) => {
+        const short = g.items.filter((i) => i.onBoard < i.par).length;
+        const isOpen = isEditing || openGroups.has(g.category);
+        return (
+        <section key={g.category} data-testid={`inv-group-${g.category}`}>
+          <button
+            className="flex w-full min-h-12 items-center gap-2 px-1 text-left"
+            onClick={() => setOpenGroups((o) => { const n = new Set(o); if (n.has(g.category)) n.delete(g.category); else n.add(g.category); return n; })}
+            aria-expanded={isOpen}
+            data-testid={`inv-group-toggle-${g.category}`}
+          >
+            <span className="flex-1 text-[1.0625rem] font-semibold text-ivory">{g.label}</span>
+            <span className="text-[0.8125rem] text-slate-400 tnum">
+              {g.items.length} item{g.items.length === 1 ? "" : "s"}
+              {short > 0 && <span className="text-warn"> · {short} low</span>}
+            </span>
+            <ChevronDown className={cx("size-4 text-slate-500 transition-transform", isOpen && "rotate-180")} aria-hidden />
+          </button>
+          {isOpen && (
           <ul className="card p-0 divide-y divide-[var(--separator)] overflow-hidden">
             {g.items.map((item) =>
               isEditing ? (
@@ -126,8 +149,10 @@ export function CabinInventory() {
               ),
             )}
           </ul>
+          )}
         </section>
-      ))}
+        );
+      })}
 
       {isEditing && (
         <Button variant="secondary" className="w-full" onClick={() => setSheet({ mode: "add" })} data-testid="inventory-add">
@@ -155,7 +180,10 @@ function InventoryRow({ item, editable, onSet }: { item: InventoryItem; editable
     <li className="flex items-center gap-3 px-3.5 py-2.5 min-h-15" data-testid={`inv-${item.id}`}>
       <div className="flex-1 min-w-0">
         <div className="text-[0.9375rem] text-ivory truncate">{item.name}</div>
-        <Badge tone={level.tone} className="mt-0.5">{level.label}</Badge>
+        <span className="mt-0.5 flex flex-wrap gap-1">
+          <Badge tone={level.tone}>{level.label}</Badge>
+          {!item.verified && <Badge tone="gold">To be verified</Badge>}
+        </span>
       </div>
       <div className="flex items-center gap-1.5 shrink-0">
         <StepButton label={`One fewer ${item.name}`} disabled={!editable || item.onBoard <= 0} onClick={() => onSet(item.onBoard - 1)} testId={`inv-minus-${item.id}`}>
@@ -244,6 +272,7 @@ function ItemSheet({ target, onClose }: { target: SheetTarget; onClose: () => vo
     category: existing?.category ?? ("other" as InventoryCategory),
     par: String(existing?.par ?? ""),
     onBoard: "0",
+    verified: !!existing?.verified,
   });
   const [error, setError] = useState<string>();
   const [confirmRemove, setConfirmRemove] = useState(false);
@@ -322,6 +351,10 @@ function ItemSheet({ target, onClose }: { target: SheetTarget; onClose: () => vo
               </Field>
             )}
           </div>
+          <label className="flex min-h-11 items-center gap-2.5 text-[0.9375rem] text-ivory mb-2">
+            <input type="checkbox" className="size-5 accent-[var(--color-gold)]" checked={form.verified} onChange={(e) => set("verified", e.target.checked)} data-testid="inv-verified" />
+            Usual amount verified on the aircraft
+          </label>
           {error && (
             <p className="text-xs text-bad -mt-1 mb-2" role="alert">
               {error}

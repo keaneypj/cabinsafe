@@ -7,6 +7,7 @@ import { Ban, Check, ChevronRight, CircleAlert, Clock, CloudLightning, OctagonAl
 import { useShallow } from "zustand/react/shallow";
 import { TaskRow, TaskSheet } from "@/components/tasks";
 import { Badge, Button, Chip, ConfirmDialog, EmptyState, Field, Notice, PageTitle, Ring, Segmented, Sheet, report } from "@/components/ui";
+import { PREBOARD_SECTIONS, preboardSectionOf } from "@/domain/checklists";
 import { can, ROLE_LABELS } from "@/domain/permissions";
 import { canSendInput, computePreboarding, isPreboardOwner, PREBOARD_CAVEAT, type AttentionItem } from "@/domain/preboarding";
 import { isOpenTask } from "@/domain/readiness";
@@ -91,6 +92,47 @@ function CheckCircle({ done, disabled, onClick, label, testId, pressed }: { done
   );
 }
 
+/** Tappable checklist rows: circle to tick, row to open details. */
+function CheckList({ tasks, canToggle, onOpen, now }: { tasks: Task[]; canToggle: (t: Task) => boolean; onOpen: (id: string) => void; now: number }) {
+  const name = useCrewName();
+  const store = useStore.getState();
+  return (
+    <ul className="divide-y divide-[var(--separator)]">
+      {tasks.map((t) => {
+        const done = !isOpenTask(t);
+        return (
+          <li key={t.id} className="flex items-stretch">
+            <CheckCircle
+              done={done}
+              pressed={done}
+              disabled={!canToggle(t) || t.status === "not_applicable"}
+              onClick={() => report(store.setTaskStatus(t.id, done ? "not_started" : "completed"), done ? undefined : "Check complete")}
+              label={done ? `Mark not done: ${t.title}` : `Mark done: ${t.title}`}
+              testId={`pb-check-${t.id}`}
+            />
+            <button className="flex-1 flex items-center gap-2 text-left py-3 pr-3 min-h-14" onClick={() => onOpen(t.id)}>
+              <span className="flex-1 min-w-0">
+                <span className={cx("block text-[0.9375rem] leading-snug", done ? "text-slate-400" : "text-ivory")}>{t.title}</span>
+                {(t.status === "blocked" || (done && t.completedAt)) && (
+                  <span className="flex flex-wrap gap-1.5 mt-1 items-center text-[0.75rem] text-slate-500">
+                    {t.status === "blocked" && <Badge tone="bad">Blocked</Badge>}
+                    {done && t.completedAt && (
+                      <span>
+                        {name(t.completedById)} · {fmtRelative(t.completedAt, now)}
+                      </span>
+                    )}
+                  </span>
+                )}
+              </span>
+              <ChevronRight className="size-4 text-slate-500/70 shrink-0" />
+            </button>
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
   const me = useMe();
   const name = useCrewName();
@@ -155,7 +197,7 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
           </div>
         ) : (
           <div className="mt-3.5 grid grid-cols-3 divide-x divide-[var(--separator)] rounded-xl bg-navy-700 py-2 text-center">
-            <Stat value={openChecks} label="Everyday open" />
+            <Stat value={openChecks} label="Checks open" />
             <Stat value={v.pendingAcks.length} label="From others" />
             <Stat value={v.attention.length} label="Attention" warn />
           </div>
@@ -169,44 +211,27 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
         </Notice>
       )}
 
-      {/* 1. Everyday checks — part of the preflight checklist */}
-      <Group title="Everyday checks" count={`${v.checks.length - openChecks}/${v.checks.length}`} footer="Standard pre-boarding checks from the preflight checklist template, due 45 minutes before departure." testId="preboard-checks">
-        <ul className="divide-y divide-[var(--separator)]">
-          {v.checks.map((t) => {
-            const done = !isOpenTask(t);
-            const editable = canToggle(t);
-            return (
-              <li key={t.id} className="flex items-stretch">
-                <CheckCircle
-                  done={done}
-                  pressed={done}
-                  disabled={!editable || t.status === "not_applicable"}
-                  onClick={() => report(store.setTaskStatus(t.id, done ? "not_started" : "completed"), done ? undefined : "Check complete")}
-                  label={done ? `Mark not done: ${t.title}` : `Mark done: ${t.title}`}
-                  testId={`pb-check-${t.id}`}
-                />
-                <button className="flex-1 flex items-center gap-2 text-left py-3 pr-3 min-h-14" onClick={() => setOpenTask(t.id)}>
-                  <span className="flex-1 min-w-0">
-                    <span className={cx("block text-[0.9375rem] leading-snug", done ? "text-slate-400" : "text-ivory")}>{t.title}</span>
-                    {(t.priority === "critical" || t.status === "blocked" || (done && t.completedAt)) && (
-                      <span className="flex flex-wrap gap-1.5 mt-1 items-center text-[0.75rem] text-slate-500">
-                        {t.priority === "critical" && !done && <Badge tone="bad">Critical</Badge>}
-                        {t.status === "blocked" && <Badge tone="bad">Blocked</Badge>}
-                        {done && t.completedAt && (
-                          <span>
-                            {name(t.completedById)} · {fmtRelative(t.completedAt, now)}
-                          </span>
-                        )}
-                      </span>
-                    )}
-                  </span>
-                  <ChevronRight className="size-4 text-slate-500/70 shrink-0" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </Group>
+      {/* 1. Pre-boarding checklist, one group per section */}
+      <div className="space-y-5" data-testid="preboard-checks">
+        {PREBOARD_SECTIONS.map((sec) => {
+          const items = v.checks.filter((t) => preboardSectionOf(t.sourceRef) === sec.id);
+          if (!items.length) return null;
+          return (
+            <Group key={sec.id} title={sec.title} count={`${items.filter((t) => !isOpenTask(t)).length}/${items.length}`} testId={`preboard-section-${sec.id}`}>
+              <CheckList tasks={items} canToggle={canToggle} onOpen={setOpenTask} now={now} />
+            </Group>
+          );
+        })}
+        {/* Pre-boarding items from older saved data or added outside the sections */}
+        {(() => {
+          const loose = v.checks.filter((t) => !preboardSectionOf(t.sourceRef));
+          return loose.length ? (
+            <Group title="Other checks" count={`${loose.filter((t) => !isOpenTask(t)).length}/${loose.length}`}>
+              <CheckList tasks={loose} canToggle={canToggle} onOpen={setOpenTask} now={now} />
+            </Group>
+          ) : null;
+        })()}
+      </div>
 
       {/* 2. Added by others */}
       <Group
@@ -232,6 +257,13 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
           </ul>
         )}
       </Group>
+
+      {/* Off-boarding — after the passengers leave; separate from pre-boarding sign-off */}
+      {v.offboard.length > 0 && (
+        <Group title="Off-Boarding Checklist" count={`${v.offboard.filter((t) => !isOpenTask(t)).length}/${v.offboard.length}`} testId="offboard-checks" footer="After the passengers leave.">
+          <CheckList tasks={v.offboard} canToggle={canToggle} onOpen={setOpenTask} now={now} />
+        </Group>
+      )}
 
       {/* 3. Outstanding items */}
       <Group title="Needs attention" count={String(v.attention.length)} testId="attention" footer={v.attention.length ? "Open items elsewhere in the preparation that affect boarding." : undefined}>
