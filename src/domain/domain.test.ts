@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createSeed, FEATURED_FLIGHT_ID, LEAD_ID, CA_SAM } from "@/data/seed";
+import { createSeed, DEMO_FIRST_DUE, FEATURED_FLIGHT_ID, LEAD_ID, CA_SAM } from "@/data/seed";
 import { generateBriefing } from "./briefing";
 import type { FlightContext } from "./context";
 import { answer, NO_SOURCE_MESSAGE } from "./copilot";
@@ -9,13 +9,17 @@ import { generateTasksForPassenger } from "./rules";
 
 const NOW = Date.UTC(2026, 10, 4, 14, 0); // demo day
 
+/** The demo data has nothing overdue, so readiness tests make the AED overdue themselves. */
+const aedOverdue = (equipment: ReturnType<typeof createSeed>["equipment"]) =>
+  equipment.map((e) => (e.code === "AED-01" ? { ...e, status: "inspection_due" as const, nextInspectionDue: new Date(NOW - 2 * 3_600_000).toISOString() } : e));
+
 function ctx(overrides: Partial<FlightContext> = {}): FlightContext {
   const s = createSeed(NOW);
   const flight = s.flights.find((f) => f.id === FEATURED_FLIGHT_ID)!;
   return {
     flight,
     tasks: s.tasks,
-    equipment: s.equipment,
+    equipment: aedOverdue(s.equipment),
     discrepancies: s.discrepancies,
     advisories: s.advisories,
     acks: [],
@@ -38,12 +42,17 @@ describe("seed", () => {
     expect(s.advisories.every((a) => a.origin === "simulated")).toBe(true);
   });
 
-  it("generates dates relative to the seeding time", () => {
+  it("schedules the first flight for Friday, Nov 6 with nothing open due before that morning", () => {
     const s = createSeed(NOW);
     const f = s.flights.find((x) => x.id === FEATURED_FLIGHT_ID)!;
-    const h = (new Date(f.departAt).getTime() - NOW) / 3_600_000;
-    expect(h).toBeGreaterThan(19);
-    expect(h).toBeLessThan(21);
+    expect(f.departAt).toBe("2026-11-06T23:00:00.000Z");
+    const upcoming = s.flights.filter((x) => x.status !== "completed").sort((a, b) => a.departAt.localeCompare(b.departAt));
+    expect(upcoming[0].id).toBe(FEATURED_FLIGHT_ID);
+    const open = s.tasks.filter((t) => t.status !== "completed" && t.status !== "not_applicable");
+    expect(open.length).toBeGreaterThan(0);
+    expect(open.every((t) => !t.dueAt || t.dueAt >= DEMO_FIRST_DUE)).toBe(true);
+    // Viewed on demo day (Wed Nov 4) or Thursday, nothing is overdue.
+    for (const at of [NOW, Date.UTC(2026, 10, 5, 23, 0)]) expect(open.filter((t) => t.dueAt && new Date(t.dueAt).getTime() < at)).toEqual([]);
   });
 });
 

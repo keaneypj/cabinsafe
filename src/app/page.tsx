@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowRight, ChevronRight, CloudLightning, FlaskConical, Handshake, History, LayoutGrid, ListChecks, Play, Sparkles, Wrench } from "lucide-react";
-import { DemoIntroSheet } from "@/components/DemoCoach";
+import { ChevronRight, CloudLightning, FlaskConical, Handshake, History, LayoutGrid, ListChecks, Sparkles, Wrench } from "lucide-react";
 import { PreboardHero, usePreboardFlight } from "@/components/PreboardCard";
 import { FlightTimes, ReadinessPanel, RouteLine } from "@/components/flight";
-import { TaskRow, TaskSheet } from "@/components/tasks";
 import { Badge, Card, EmptyState, SectionHeader, SimulatedBadge } from "@/components/ui";
-import { effectiveEquipmentStatus, isAcked, isOpenTask } from "@/domain/readiness";
+import { effectiveEquipmentStatus, isAcked } from "@/domain/readiness";
 import { fmtRelative } from "@/lib/format";
 import { useCrewName, useFeaturedFlight, useFlightAdvisories, useNow, useReadiness } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
@@ -24,20 +21,12 @@ export default function HomePage() {
   const flight = useFeaturedFlight();
   const r = useReadiness(flight?.id, now);
   const name = useCrewName();
-  const tasks = useStore((s) => s.tasks);
   const equipment = useStore((s) => s.equipment);
   const acks = useStore((s) => s.acks);
   const handovers = useStore((s) => s.handovers);
   const audit = useStore((s) => s.audit);
-  const demoActive = useStore((s) => s.demo.active);
   const advisories = useFlightAdvisories(flight?.id);
-  const [intro, setIntro] = useState(false);
-  const [openTask, setOpenTask] = useState<string | null>(null);
 
-  const flights = useStore((s) => s.flights);
-  const upcomingIds = new Set(flights.filter((f) => f.status !== "completed").map((f) => f.id));
-  const callsign = (id: string) => flights.find((f) => f.id === id)?.callsign;
-  const myQueue = tasks.filter((t) => t.assigneeId === me.id && isOpenTask(t) && upcomingIds.has(t.flightId)).sort((a, b) => (a.dueAt ?? "").localeCompare(b.dueAt ?? ""));
   const eqAttention = equipment.filter((e) => effectiveEquipmentStatus(e, now) !== "serviceable").length;
   const flightAdvs = flight ? advisories.filter((a) => a.airports.some((x) => [flight.departure, flight.destination, ...flight.alternates].includes(x))) : [];
   const unacked = flight ? flightAdvs.filter((a) => !isAcked(acks, a.id, flight.id)) : [];
@@ -55,21 +44,6 @@ export default function HomePage() {
       </div>
 
       {preboardFlight && <PreboardHero flight={preboardFlight} />}
-
-      {!demoActive && (
-        <button onClick={() => setIntro(true)} className="w-full text-left card p-4 transition-colors animate-fade-up" data-testid="experience-cta">
-          <span className="flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-full bg-gold text-midnight shrink-0">
-              <Play className="size-5 ml-0.5" fill="currentColor" />
-            </span>
-            <span className="flex-1">
-              <span className="block font-semibold text-ivory">Experience CabinSafe</span>
-              <span className="block text-xs text-slate mt-0.5">Guided five-minute demonstration · Miami → Geneva</span>
-            </span>
-            <ArrowRight className="size-5 text-gold" />
-          </span>
-        </button>
-      )}
 
       {flight && r ? (
         <Card className="p-0 overflow-hidden animate-fade-up" data-testid="featured-flight">
@@ -135,25 +109,6 @@ export default function HomePage() {
         </section>
       )}
 
-      {/* My queue */}
-      <section>
-        <SectionHeader eyebrow={me.title} title="My queue" action={<span className="text-xs text-slate tnum">{myQueue.length} open</span>} />
-        {myQueue.length ? (
-          <div className="card p-0 divide-y divide-[var(--separator)] overflow-hidden" data-testid="my-queue">
-            {myQueue.slice(0, 5).map((t) => (
-              <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} showFlight={callsign(t.flightId)} />
-            ))}
-            {myQueue.length > 5 && (
-              <Link href="/crew?tab=queue" className="flex items-center justify-center gap-1 py-3 text-sm text-gold">
-                View all {myQueue.length} <ChevronRight className="size-4" />
-              </Link>
-            )}
-          </div>
-        ) : (
-          <EmptyState icon={<ListChecks className="size-7" />} title="Nothing assigned to you">Items assigned to {me.name} will appear here.</EmptyState>
-        )}
-      </section>
-
       {/* Shortcuts */}
       <div className="grid grid-cols-2 gap-3">
         <Link href="/cabin" className="card p-4 hover:border-gold/30 transition-colors">
@@ -190,8 +145,6 @@ export default function HomePage() {
         <FlaskConical className="size-3.5" /> Demonstration prototype · all people, flights and records are fictional
       </p>
 
-      <DemoIntroSheet open={intro} onClose={() => setIntro(false)} />
-      <TaskSheet taskId={openTask} onClose={() => setOpenTask(null)} />
     </div>
   );
 }

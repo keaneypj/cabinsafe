@@ -69,7 +69,7 @@ src/
     copilot.ts            Guardrails, intent routing, record-grounded answers
     retrieval.ts          BM25 retrieval over approved documents only
     permissions.ts        Demo Role Preview permission matrix
-  data/                   Synthetic seed (flight times relative to "now"; equipment inspection dates fixed for the Nov 4, 2026 demo), aircraft, airports, documents
+  data/                   Synthetic seed on fixed dates for the Nov 4, 2026 demo (first flight Fri Nov 6; nothing open due before that morning), aircraft, airports, documents
   store/                  Zustand store: audited, permission-checked actions + persistence
   components/             Design system, cabin map, sheets, coach, etc.
   lib/                    Formatting, feed fetchers and defensive parsers
