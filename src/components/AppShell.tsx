@@ -124,7 +124,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile bottom navigation */}
       <nav aria-label="Primary" className="md:hidden fixed inset-x-0 bottom-0 z-50 border-t hairline bg-[var(--chrome)] backdrop-blur-xl backdrop-saturate-150 no-print" style={{ paddingBottom: "var(--safe-bottom)" }}>
-        <ul className="grid grid-cols-6 h-[var(--nav-h)]">
+        <ul className="grid h-[var(--nav-h)]" style={{ gridTemplateColumns: `repeat(${NAV.length}, minmax(0, 1fr))` }}>
           {NAV.map((n) => {
             const active = n.match(pathname);
             return (
