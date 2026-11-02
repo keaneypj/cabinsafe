@@ -1,32 +1,22 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useMemo, useState, type ReactNode } from "react";
-import { Ban, Check, ChevronRight, CircleAlert, Clock, CloudLightning, OctagonAlert, Plus, ShieldCheck, Sparkles, Wrench } from "lucide-react";
+import { Check, ChevronRight, CircleAlert, Plus, ShieldCheck } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
-import { TaskRow, TaskSheet } from "@/components/tasks";
-import { Badge, Button, Chip, ConfirmDialog, EmptyState, Field, Notice, PageTitle, Ring, Segmented, Sheet, report } from "@/components/ui";
+import { TaskSheet } from "@/components/tasks";
+import { Badge, Button, Chip, ConfirmDialog, EmptyState, Field, Notice, PageTitle, Segmented, Sheet, report } from "@/components/ui";
 import { PREBOARD_SECTIONS, preboardSectionOf } from "@/domain/checklists";
 import { can, ROLE_LABELS } from "@/domain/permissions";
-import { canSendInput, computePreboarding, isPreboardOwner, PREBOARD_CAVEAT, type AttentionItem } from "@/domain/preboarding";
+import { canSendInput, computePreboarding, isPreboardOwner, PREBOARD_CAVEAT } from "@/domain/preboarding";
 import { isOpenTask } from "@/domain/readiness";
 import type { CrewInput, CrewInputCategory, CrewMember, Flight, Task } from "@/domain/types";
-import { cx, fmtAirportTime, fmtDateTime, fmtRelative } from "@/lib/format";
+import { airport } from "@/data/airports";
+import { cx, fmtAirportTime, fmtDate, fmtDateTime, fmtRelative } from "@/lib/format";
 import { useCrewName, useFeaturedFlight, useFlightAdvisories, useNow, useUpcomingFlights } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
 
 const CATEGORY_LABEL: Record<CrewInputCategory, string> = { instruction: "Instruction", passenger: "Passenger", timing: "Timing", catering: "Catering", safety: "Safety" };
-
-const ATTENTION_META: Record<AttentionItem["kind"], { icon: typeof Ban; tone: string; label: string }> = {
-  blocker: { icon: OctagonAlert, tone: "text-bad", label: "Critical blocker" },
-  blocked: { icon: Ban, tone: "text-bad", label: "Blocked" },
-  overdue: { icon: Clock, tone: "text-bad", label: "Overdue" },
-  critical: { icon: CircleAlert, tone: "text-warn", label: "Critical item open" },
-  equipment: { icon: Wrench, tone: "text-warn", label: "Equipment" },
-  advisory: { icon: CloudLightning, tone: "text-warn", label: "Advisory" },
-  review: { icon: Sparkles, tone: "text-warn", label: "Review" },
-};
 
 export default function PreboardPage() {
   return (
@@ -50,7 +40,7 @@ function Preboard() {
   if (!flight) return <EmptyState title="No upcoming flights">The pre-boarding checklist appears for upcoming flights.</EmptyState>;
   return (
     <div>
-      <PageTitle title="Pre-Boarding" subtitle="The cabin attendant's preflight checklist before passengers board" />
+      <PageTitle title="Pre-Boarding" subtitle="Everything to do before the passengers arrive" />
       {upcoming.length > 1 && (
         <div className="scroll-x -mx-4 px-4 mb-4">
           <div className="flex gap-2 w-max">
@@ -149,8 +139,6 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
   const [composing, setComposing] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const [note, setNote] = useState("");
-  const [allAttention, setAllAttention] = useState(false);
-  const [allPax, setAllPax] = useState(false);
 
   const v = useMemo(
     () => computePreboarding({ flight, tasks, equipment, discrepancies, advisories, acks, inputs, signoffs, nowMs: now }),
@@ -158,48 +146,40 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
   );
   const owner = isPreboardOwner(me, flight);
   const canToggle = (t: Task) => can(me.role, "task.update.any") || t.assigneeId === me.id;
-  const ringTone = v.signoff || v.progress.pct === 100 ? "ok" : v.readiness.blockers.length ? "bad" : "gold";
   const openChecks = v.checks.filter(isOpenTask).length;
-  const passengerOpen = v.passengerItems.filter(isOpenTask);
-  const passengerDone = v.passengerItems.length - passengerOpen.length;
   const othersDone = v.inputs.filter((i) => i.acks.length > 0).length;
 
   return (
     <div className="space-y-6">
-      {/* Summary */}
+      {/* Summary — the same count as the Home card */}
       <section className="card p-4" data-testid="preboard-summary">
-        <div className="flex items-center gap-4">
-          <Ring value={v.progress.pct} tone={ringTone} size={76} stroke={7} label="Pre-boarding progress">
-            <span className="text-[1.0625rem] font-semibold tnum leading-none" data-testid="preboard-pct">
-              {v.progress.pct}%
-            </span>
-          </Ring>
-          <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
             <div className="text-[1.0625rem] font-semibold text-ivory leading-snug">
-              {flight.callsign} · {flight.departure} → {flight.destination}
+              {flight.departure} → {flight.destination}
             </div>
-            <div className="text-[0.9375rem] text-slate">
-              Boarding {fmtAirportTime(v.boardingAt, flight.departure)} · {fmtRelative(v.boardingAt, now)}
+            <div className="text-[0.875rem] text-slate">
+              Takeoff {fmtDate(flight.departAt, airport(flight.departure)?.tz)} · {fmtAirportTime(flight.departAt, flight.departure)}
             </div>
-            <div className="text-[0.8125rem] text-slate-400 mt-0.5">Cabin attendant · {name(flight.cabinAttendantId)}</div>
+          </div>
+          <div className="text-right shrink-0">
+            <div className={cx("text-[2rem] font-bold leading-none tnum", v.signoff || openChecks === 0 ? "text-ok" : "text-ivory")} data-testid="preboard-count">
+              {v.checks.length - openChecks}/{v.checks.length}
+            </div>
+            <div className="text-[0.75rem] text-slate-400">done</div>
           </div>
         </div>
-        {v.signoff ? (
+        {/* Overall progress, including items added by others, for the sign-off check */}
+        <span className="sr-only" data-testid="preboard-pct">{v.progress.pct}%</span>
+        {v.signoff && (
           <div className="mt-3.5 flex items-center gap-2.5 rounded-xl bg-ok-bg px-3 py-2.5 text-[0.875rem]" data-testid="preboard-signed">
             <ShieldCheck className="size-5 text-ok shrink-0" />
             <span>
               <span className="text-ivory font-semibold">Pre-boarding confirmed</span>
               <span className="block text-[0.75rem] text-slate">
                 {name(v.signoff.byId)} · {fmtDateTime(v.signoff.at)}
-                {v.signoff.openItemsAtSignoff ? ` · ${v.signoff.openItemsAtSignoff} other open item(s) noted` : ""}
               </span>
             </span>
-          </div>
-        ) : (
-          <div className="mt-3.5 grid grid-cols-3 divide-x divide-[var(--separator)] rounded-xl bg-navy-700 py-2 text-center">
-            <Stat value={openChecks} label="Checks open" />
-            <Stat value={v.pendingAcks.length} label="From others" />
-            <Stat value={v.attention.length} label="Attention" warn />
           </div>
         )}
       </section>
@@ -265,78 +245,6 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
         </Group>
       )}
 
-      {/* 3. Outstanding items */}
-      <Group title="Needs attention" count={String(v.attention.length)} testId="attention" footer={v.attention.length ? "Open items elsewhere in the preparation that affect boarding." : undefined}>
-        {v.attention.length === 0 ? (
-          <p className="p-4 text-[0.9375rem] text-slate-400 flex items-center gap-2">
-            <Check className="size-4 text-ok" /> No blockers, blocked, overdue or critical items.
-          </p>
-        ) : (
-          <ul className="divide-y divide-[var(--separator)]">
-            {(allAttention ? v.attention : v.attention.slice(0, 3)).map((a, idx) => {
-              const M = ATTENTION_META[a.kind];
-              const content = (
-                <>
-                  <M.icon className={cx("size-5 shrink-0", M.tone)} />
-                  <span className="flex-1 min-w-0">
-                    <span className="block text-[0.9375rem] text-ivory leading-snug">{a.label}</span>
-                    <span className="block text-[0.75rem] text-slate-400">
-                      {M.label}
-                      {a.detail ? ` · ${a.detail}` : ""}
-                    </span>
-                  </span>
-                  <ChevronRight className="size-4 text-slate-500/70 shrink-0" />
-                </>
-              );
-              const cls = "w-full flex items-center gap-3 px-4 py-3 min-h-13 text-left active:bg-navy-700";
-              return (
-                <li key={a.kind + a.label + idx}>
-                  {a.taskId ? (
-                    <button className={cls} onClick={() => setOpenTask(a.taskId!)}>
-                      {content}
-                    </button>
-                  ) : (
-                    <Link href={a.href} className={cls}>
-                      {content}
-                    </Link>
-                  )}
-                </li>
-              );
-            })}
-            {v.attention.length > 3 && (
-              <li>
-                <button className="w-full px-4 py-3 text-left text-[0.9375rem] text-gold min-h-12" onClick={() => setAllAttention((x) => !x)}>
-                  {allAttention ? "Show fewer" : `Show all ${v.attention.length}`}
-                </button>
-              </li>
-            )}
-          </ul>
-        )}
-      </Group>
-
-      {/* 4. Passenger-specific */}
-      <Group title="Passenger-specific" count={`${passengerDone}/${v.passengerItems.length}`} testId="preboard-passengers" footer="Generated from documented passenger accommodations.">
-        {v.passengerItems.length === 0 ? (
-          <p className="p-4 text-[0.9375rem] text-slate-400">No passenger-specific preparation.</p>
-        ) : (
-          <div className="divide-y divide-[var(--separator)]">
-            {(allPax ? [...passengerOpen, ...v.passengerItems.filter((t) => !isOpenTask(t))] : passengerOpen.slice(0, 4)).map((t) => (
-              <TaskRow key={t.id} task={t} onOpen={(x) => setOpenTask(x.id)} />
-            ))}
-            {passengerOpen.length === 0 && !allPax && (
-              <p className="p-4 text-[0.9375rem] text-ok flex items-center gap-2">
-                <Check className="size-4" /> All passenger-specific preparation complete.
-              </p>
-            )}
-            {v.passengerItems.length > Math.min(4, passengerOpen.length) && (
-              <button className="w-full px-4 py-3 text-left text-[0.9375rem] text-gold min-h-12" onClick={() => setAllPax((x) => !x)}>
-                {allPax ? "Show open items only" : `Show all ${v.passengerItems.length}`}
-              </button>
-            )}
-          </div>
-        )}
-      </Group>
-
       {/* 5. Sign-off */}
       {!v.signoff && (
         <section data-testid="preboard-signoff">
@@ -383,15 +291,6 @@ function PreboardBody({ flight, now }: { flight: Flight; now: number }) {
       />
       <AddItemSheet flight={flight} open={composing} onClose={() => setComposing(false)} />
       <TaskSheet taskId={openTask} onClose={() => setOpenTask(null)} />
-    </div>
-  );
-}
-
-function Stat({ value, label, warn }: { value: number; label: string; warn?: boolean }) {
-  return (
-    <div className="px-1">
-      <div className={cx("text-[1.25rem] font-semibold tnum leading-tight", value === 0 ? "text-ok" : warn ? "text-warn" : "text-ivory")}>{value}</div>
-      <div className="text-[0.6875rem] text-slate-400">{label}</div>
     </div>
   );
 }

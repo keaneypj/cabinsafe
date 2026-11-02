@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
-import { Circle, CircleCheck, CloudLightning, FileText, Handshake, Pencil, Plus, Shield, UserMinus, Users } from "lucide-react";
-import { ComponentBreakdown, FlightTimes, ReadinessPanel, ReadinessPill, RouteLine } from "@/components/flight";
+import { ChevronDown, Circle, CircleCheck, Handshake, Pencil, Plus, Shield, UserMinus, Users } from "lucide-react";
+import { ComponentBreakdown, FlightTimes, ReadinessPanel, RouteLine } from "@/components/flight";
 import { AddPassengerSheet, PassengerRow } from "@/components/passengers";
 import { PreboardCard } from "@/components/PreboardCard";
 import { TaskRow, TaskSheet } from "@/components/tasks";
@@ -39,6 +39,8 @@ function FlightDetail() {
   const me = useMe();
   const [tab, setTab] = useState<Tab>((sp.get("tab") as Tab) ?? (sp.get("filter") || sp.get("task") ? "checklist" : "overview"));
   const [openTask, setOpenTask] = useState<string | null>(sp.get("task"));
+  const [showReadiness, setShowReadiness] = useState(false);
+  const name = useCrewName();
 
   useEffect(() => {
     const t = sp.get("tab") as Tab | null;
@@ -70,15 +72,7 @@ function FlightDetail() {
       <Card className="mb-4">
         <RouteLine flight={flight} large />
         <FlightTimes flight={flight} />
-        <div className="flex flex-wrap gap-1.5 mt-3">
-          <Badge tone="neutral">DEMO-700 · G700 (conceptual)</Badge>
-          {flight.alternates.map((a) => (
-            <Badge key={a} tone="neutral">
-              ALT {a}
-            </Badge>
-          ))}
-          {r && flight.status !== "completed" && <ReadinessPill r={r} />}
-        </div>
+        <p className="mt-3 text-[0.8125rem] text-slate">DEMO-700 · G700 (conceptual)</p>
       </Card>
 
       <div className="scroll-x -mx-4 px-4 mb-4">
@@ -93,34 +87,46 @@ function FlightDetail() {
 
       {tab === "overview" && r && (
         <div className="space-y-4">
-          {flight.status !== "completed" ? (
-            <>
-              <Card>
-                <ReadinessPanel r={r} flightId={flight.id} />
-              </Card>
-              <Card>
-                <SectionHeader eyebrow="How the index is built" title="Readiness components" />
-                <ComponentBreakdown r={r} />
-                <p className="text-[0.6875rem] text-slate-500 mt-3">Any unresolved critical blocker results in Not Ready regardless of score (CSI-OPS-001 §2).</p>
-              </Card>
-            </>
-          ) : (
-            <Notice tone="info">This flight is complete. Review postflight items in the Checklist tab.</Notice>
-          )}
+          {/* Plain summary first; readiness detail is one tap away. */}
+          <Card className="p-0 overflow-hidden" data-testid="flight-summary">
+            <dl className="divide-y divide-[var(--separator)] text-[0.9375rem]">
+              {[
+                ["Cabin host", name(flight.cabinAttendantId)],
+                ["Lead cabin attendant", name(flight.leadId)],
+                ["Pilots", flight.pilotIds.map((x) => name(x)).join(", ") || "—"],
+                ["Passengers", String(flight.manifest.length)],
+              ].map(([k, val]) => (
+                <div key={k} className="flex items-center justify-between gap-3 px-4 min-h-12">
+                  <dt className="text-slate">{k}</dt>
+                  <dd className="text-ivory text-right">{val}</dd>
+                </div>
+              ))}
+            </dl>
+          </Card>
           {flight.status !== "completed" && <PreboardCard flight={flight} />}
-          <div className="grid grid-cols-2 gap-3">
-            <Link href={`/intel?flight=${flight.id}`} className="card p-4 hover:border-gold/30">
-              <CloudLightning className="size-5 text-gold" />
-              <div className="font-semibold mt-2 text-sm">Risk Intelligence</div>
-              <div className="text-xs text-slate">Weather & advisories</div>
-            </Link>
-            <Link href={`/copilot?flight=${flight.id}`} className="card p-4 hover:border-gold/30">
-              <FileText className="size-5 text-gold" />
-              <div className="font-semibold mt-2 text-sm">Safety Briefing</div>
-              <div className="text-xs text-slate">Generate & export</div>
-            </Link>
-          </div>
           {flight.notes && <Notice tone="neutral">{flight.notes}</Notice>}
+          {flight.status === "completed" ? (
+            <Notice tone="info">This flight is complete. Review postflight items in the Checklist tab.</Notice>
+          ) : (
+            <section>
+              <button className="flex w-full min-h-12 items-center gap-2 px-1 text-left" onClick={() => setShowReadiness(!showReadiness)} aria-expanded={showReadiness} data-testid="readiness-toggle">
+                <span className="flex-1 text-[1rem] font-semibold text-ivory">Readiness details</span>
+                <ChevronDown className={cx("size-5 text-slate-500 transition-transform", showReadiness && "rotate-180")} aria-hidden />
+              </button>
+              {showReadiness && (
+                <div className="mt-2 space-y-4">
+                  <Card>
+                    <ReadinessPanel r={r} flightId={flight.id} />
+                  </Card>
+                  <Card>
+                    <SectionHeader eyebrow="How the index is built" title="Readiness components" />
+                    <ComponentBreakdown r={r} />
+                    <p className="text-[0.6875rem] text-slate-500 mt-3">Any unresolved critical blocker results in Not Ready regardless of score (CSI-OPS-001 §2).</p>
+                  </Card>
+                </div>
+              )}
+            </section>
+          )}
         </div>
       )}
 
