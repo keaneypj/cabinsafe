@@ -91,6 +91,9 @@ await step("Opening sequence can be skipped", async () => {
 await step("Home dashboard loads with featured flight and readiness", async () => {
   await go("/");
   await tid("featured-flight").waitFor();
+  await tid("preboard-card").waitFor();
+  // Readiness is on the flight page; Home only shows pre-boarding and the next flight.
+  await go("/flights/flt-csi101");
   const headline = await tid("readiness-headline").first().innerText();
   // The demo data has nothing overdue, so the next flight needs attention but is not blocked.
   assert(/Attention Required|Not Ready/.test(headline), `unexpected headline: ${headline}`);
@@ -167,7 +170,7 @@ await step("4b. Lead CA reviews a generated task", async () => {
 
 let beforeIndex = 0;
 await step("5. Open an equipment marker on the cabin map", async () => {
-  await go("/");
+  await go("/flights/flt-csi101");
   beforeIndex = Number(await tid("readiness-index").first().innerText());
   await go("/cabin");
   await tid("cabin-map").waitFor();
@@ -189,11 +192,11 @@ await step("6. Complete an equipment inspection", async () => {
 });
 
 await step("7. Readiness dashboard updates after inspection", async () => {
-  await go("/");
+  await go("/flights/flt-csi101");
   const after = Number(await tid("readiness-index").first().innerText());
   assert(after >= beforeIndex, `index went down (${beforeIndex} → ${after})`);
   const headline = await tid("readiness-headline").first().innerText();
-  assert(!/AED/.test(await tid("featured-flight").innerText()) || !/inspection due/.test(await tid("featured-flight").innerText()), "AED blocker still shown");
+  assert(!/AED-01.*inspection due/i.test(await page.locator("main").innerText()), "AED blocker still shown");
   console.log(`      readiness ${beforeIndex} → ${after} · ${headline}`);
 });
 
