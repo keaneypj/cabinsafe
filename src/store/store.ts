@@ -3,11 +3,13 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createInventory } from "@/data/inventory";
+import { createPreferences } from "@/data/preferences";
 import { createSeed, LEAD_ID, type SeedState } from "@/data/seed";
-import { buildChecklist } from "@/domain/checklists";
+import { buildUpcomingChecklist } from "@/domain/checklists";
 import { CATEGORY_LABELS, parseCount, validateInventoryItem, type InventoryItemInput } from "@/domain/inventory";
 import { can, type Permission } from "@/domain/permissions";
 import { computePreboarding } from "@/domain/preboarding";
+import { RELATION_LABELS, validatePersonName, validatePreferenceText } from "@/domain/preferences";
 import { generateTasksForPassenger } from "@/domain/rules";
 import type {
   Advisory,
@@ -23,14 +25,17 @@ import type {
   IntelSnapshot,
   InventoryItem,
   PreboardSignoff,
+  PreferenceCategory,
+  PreferencePerson,
   Severity,
   Task,
   TaskStatus,
 } from "@/domain/types";
 import { uid } from "@/lib/format";
+import { upgradeToV10 } from "./migrate";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 9;
+const SCHEMA_VERSION = 10;
 /** Repeated count changes to one item by the same person within this window share one audit entry. */
 const INVENTORY_AUDIT_MERGE_MS = 5 * 60_000;
 
@@ -49,6 +54,8 @@ export interface AppState extends SeedState {
   briefings: BriefingDoc[];
   preboardSignoffs: PreboardSignoff[];
   inventory: InventoryItem[];
+  /** The principal and frequent passengers, with what they like. */
+  preferences: PreferencePerson[];
   intel: Record<string, IntelSnapshot>;
   demo: DemoState;
   hydrated: boolean;
@@ -96,6 +103,12 @@ export interface Actions {
   addInventoryItem(input: InventoryItemInput): Result<InventoryItem>;
   updateInventoryItem(itemId: string, input: InventoryItemInput): Result;
   removeInventoryItem(itemId: string): Result;
+  addPerson(name: string, relation: Exclude<PreferencePerson["relation"], "principal">): Result<PreferencePerson>;
+  updatePerson(personId: string, patch: { name: string; relation?: Exclude<PreferencePerson["relation"], "principal"> }): Result;
+  removePerson(personId: string): Result;
+  addPreference(personId: string, category: PreferenceCategory, text: string): Result;
+  updatePreference(personId: string, prefId: string, text: string): Result;
+  removePreference(personId: string, prefId: string): Result;
   resetDemo(): void;
   demoStart(): void;
   demoGo(step: number): void;
@@ -114,6 +127,7 @@ function initialState(): AppState {
     briefings: [],
     preboardSignoffs: [],
     inventory: createInventory(),
+    preferences: createPreferences(),
     intel: {},
     demo: { active: false, step: 0, done: {} },
     hydrated: false,
@@ -431,7 +445,7 @@ export const useStore = create<Store>()(
             callsign,
             alternates: input.alternates.filter((a) => a && a !== input.destination),
           };
-          set((s) => ({ flights: [...s.flights, flight], tasks: [...s.tasks, ...buildChecklist(flight, now, "preflight")] }));
+          set((s) => ({ flights: [...s.flights, flight], tasks: [...s.tasks, ...buildUpcomingChecklist(flight, now)] }));
           pushAudit(audit("flight.create", "flight", flight.id, `Created flight ${callsign} ${flight.departure}–${flight.destination}`, flight.id));
           return { ok: true, value: flight };
         },
@@ -610,16 +624,17 @@ export const useStore = create<Store>()(
           const prev = get().inventory.find((i) => i.id === itemId);
           if (!prev) return { ok: false, error: "Inventory item not found." };
           // Counts are logged from the list, so editing keeps the current count.
-          const v = validateInventoryItem({ ...input, onBoard: prev.onBoard }, get().inventory, itemId);
+          const v = validateInventoryItem({ ...input, onBoard: prev.onBoard, verified: input.verified ?? !!prev.verified }, get().inventory, itemId);
           if (!v.ok) return v;
-          const { name, category, par } = v.value;
+          const { name, category, par, verified } = v.value;
           const changes = [
             name !== prev.name && `renamed from ${prev.name}`,
             category !== prev.category && `moved to ${CATEGORY_LABELS[category]}`,
             par !== prev.par && `usual amount ${prev.par} → ${par}`,
+            verified !== !!prev.verified && (verified ? "amount verified on the aircraft" : "marked to be verified"),
           ].filter(Boolean);
           if (!changes.length) return { ok: true };
-          set((s) => ({ inventory: s.inventory.map((i) => (i.id === itemId ? { ...i, name, category, par } : i)) }));
+          set((s) => ({ inventory: s.inventory.map((i) => (i.id === itemId ? { ...i, name, category, par, verified } : i)) }));
           pushAudit(audit("inventory.update", "inventory", itemId, `Edited ${name}: ${changes.join(", ")}`));
           return { ok: true };
         },
@@ -631,6 +646,80 @@ export const useStore = create<Store>()(
           if (!item) return { ok: false, error: "Inventory item not found." };
           set((s) => ({ inventory: s.inventory.filter((i) => i.id !== itemId) }));
           pushAudit(audit("inventory.update", "inventory", itemId, `Removed from inventory: ${item.name} (${item.onBoard}/${item.par} on board)`));
+          return { ok: true };
+        },
+
+        addPerson(name, relation) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const v = validatePersonName(name, get().preferences);
+          if (!v.ok) return v;
+          const person: PreferencePerson = { id: uid("pref"), name: v.value, relation, preferences: [] };
+          set((s) => ({ preferences: [...s.preferences, person] }));
+          pushAudit(audit("preferences.update", "preferences", person.id, `Added frequent passenger: ${person.name} (${RELATION_LABELS[relation]})`));
+          return { ok: true, value: person };
+        },
+
+        updatePerson(personId, patch) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const prev = get().preferences.find((x) => x.id === personId);
+          if (!prev) return { ok: false, error: "Person not found." };
+          const v = validatePersonName(patch.name, get().preferences, personId);
+          if (!v.ok) return v;
+          const relation = prev.relation === "principal" ? "principal" : (patch.relation ?? prev.relation);
+          if (v.value === prev.name && relation === prev.relation) return { ok: true };
+          set((s) => ({ preferences: s.preferences.map((x) => (x.id === personId ? { ...x, name: v.value, relation } : x)) }));
+          pushAudit(audit("preferences.update", "preferences", personId, v.value === prev.name ? `${prev.name} is now listed as ${RELATION_LABELS[relation]}` : `Renamed ${prev.name} to ${v.value}`));
+          return { ok: true };
+        },
+
+        removePerson(personId) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const prev = get().preferences.find((x) => x.id === personId);
+          if (!prev) return { ok: false, error: "Person not found." };
+          if (prev.relation === "principal") return { ok: false, error: "The principal can't be removed. Edit their name or preferences instead." };
+          set((s) => ({ preferences: s.preferences.filter((x) => x.id !== personId) }));
+          pushAudit(audit("preferences.update", "preferences", personId, `Removed ${prev.name} and their ${prev.preferences.length} preference${prev.preferences.length === 1 ? "" : "s"}`));
+          return { ok: true };
+        },
+
+        addPreference(personId, category, text) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const person = get().preferences.find((x) => x.id === personId);
+          if (!person) return { ok: false, error: "Person not found." };
+          const v = validatePreferenceText(text);
+          if (!v.ok) return v;
+          const pref = { id: uid("pref-item"), category, text: v.value };
+          set((s) => ({ preferences: s.preferences.map((x) => (x.id === personId ? { ...x, preferences: [...x.preferences, pref] } : x)) }));
+          pushAudit(audit("preferences.update", "preferences", personId, `Added a preference for ${person.name}: ${v.value}`));
+          return { ok: true };
+        },
+
+        updatePreference(personId, prefId, text) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const person = get().preferences.find((x) => x.id === personId);
+          const prev = person?.preferences.find((x) => x.id === prefId);
+          if (!person || !prev) return { ok: false, error: "Preference not found." };
+          const v = validatePreferenceText(text);
+          if (!v.ok) return v;
+          if (v.value === prev.text) return { ok: true };
+          set((s) => ({ preferences: s.preferences.map((x) => (x.id === personId ? { ...x, preferences: x.preferences.map((y) => (y.id === prefId ? { ...y, text: v.value } : y)) } : x)) }));
+          pushAudit(audit("preferences.update", "preferences", personId, `Edited a preference for ${person.name}: ${v.value}`));
+          return { ok: true };
+        },
+
+        removePreference(personId, prefId) {
+          const d = deny("preferences.manage");
+          if (d) return d;
+          const person = get().preferences.find((x) => x.id === personId);
+          const prev = person?.preferences.find((x) => x.id === prefId);
+          if (!person || !prev) return { ok: false, error: "Preference not found." };
+          set((s) => ({ preferences: s.preferences.map((x) => (x.id === personId ? { ...x, preferences: x.preferences.filter((y) => y.id !== prefId) } : x)) }));
+          pushAudit(audit("preferences.update", "preferences", personId, `Removed a preference for ${person.name}: ${prev.text}`));
           return { ok: true };
         },
 
@@ -667,10 +756,9 @@ export const useStore = create<Store>()(
         const { hydrated, ...rest } = s;
         return Object.fromEntries(Object.entries(rest).filter(([, v]) => typeof v !== "function")) as Partial<Store>;
       },
-      // Version 9 only adds the cabin inventory, so keep version 8 demo data and add it.
-      // Older versions restore the seed.
+      // Versions 8 and 9 keep their demo data and are upgraded (see upgradeToV10). Older versions restore the seed.
       migrate: (persisted, version) =>
-        (version === 8 && persisted ? { ...(persisted as AppState), schema: SCHEMA_VERSION, inventory: createInventory() } : initialState()) as unknown as Store,
+        ((version === 8 || version === 9) && persisted ? { ...upgradeToV10(persisted as AppState), schema: SCHEMA_VERSION } : initialState()) as unknown as Store,
       onRehydrateStorage: () => (_state, error) => {
         if (error) console.warn("CabinSafe: stored demo data could not be read; using seeded data.", error);
       },

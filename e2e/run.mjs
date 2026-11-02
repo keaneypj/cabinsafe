@@ -176,6 +176,7 @@ await step("5. Open an equipment marker on the cabin map", async () => {
 });
 
 await step("6. Complete an equipment inspection", async () => {
+  await tid("eq-details").click(); // inspection tools sit behind Maintenance details
   await tid("eq-inspect").click();
   await tid("inspection-form").waitFor();
   await tid("eq-all-pass").click();
@@ -272,8 +273,10 @@ await step("Pre-boarding: cabin attendant acknowledges inputs, completes checks 
   await tid("preboard-summary").waitFor();
   assert(!(await tid("preboard-confirm").isEnabled()), "sign-off should be disabled before checks are done");
   for (let i = 0; i < 20 && (await page.locator('[data-testid^="ack-input-"]').count()) > 0; i++) await page.locator('[data-testid^="ack-input-"]').first().click();
-  for (let i = 0; i < 20 && (await page.locator('[data-testid^="pb-check-"][aria-pressed="false"]').count()) > 0; i++) {
-    await page.locator('[data-testid^="pb-check-"][aria-pressed="false"]').first().click();
+  // Pre-boarding checks only (off-boarding items share the row style but are ticked after landing).
+  const open = () => page.locator('[data-testid="preboard-checks"] [data-testid^="pb-check-"][aria-pressed="false"]');
+  for (let i = 0; i < 60 && (await open().count()) > 0; i++) {
+    await open().first().click();
     await page.waitForTimeout(80);
   }
   await page.waitForFunction(() => document.querySelector('[data-testid="preboard-pct"]')?.textContent === "100%");
@@ -282,7 +285,8 @@ await step("Pre-boarding: cabin attendant acknowledges inputs, completes checks 
   await page.getByRole("button", { name: "Confirm and sign" }).click();
   await tid("preboard-signed").waitFor();
   await go("/");
-  assert((await tid("preboard-card").innerText()).includes("Pre-boarding confirmed"), "home card not updated");
+  assert((await tid("preboard-card").innerText()).includes("View Pre-Boarding"), "home card not updated");
+  assert(/^(\d+)\/\1$/.test((await tid("preboard-card-count").innerText()).trim()), "home card count not complete");
 });
 
 await step("12. Review the audit trail", async () => {
@@ -315,6 +319,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
   await tid("generated-tasks").waitFor();
   await demoNext(); // → 4
   await page.waitForURL(/\/cabin/);
+  await tid("eq-details").click(); // inspection tools sit behind Maintenance details
   await tid("eq-inspect").click();
   await tid("eq-all-pass").click();
   await tid("eq-submit").click();
@@ -341,7 +346,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
 });
 
 await step("15. Mobile layout: no horizontal overflow on any screen", async () => {
-  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/intel", "/copilot", "/more", "/passengers", "/passengers/pax-michael", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
+  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/cabin?view=inventory", "/intel", "/copilot", "/preferences", "/more", "/passengers", "/passengers/pax-michael", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
     await go(p);
     await noHorizontalOverflow(p);
   }

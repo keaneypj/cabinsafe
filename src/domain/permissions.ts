@@ -27,18 +27,19 @@ export type Permission =
   | "input.create"
   | "preboard.signoff"
   | "inventory.update"
-  | "inventory.manage";
+  | "inventory.manage"
+  | "preferences.manage";
 
 const MATRIX: Record<RoleKey, Permission[]> = {
   lead: [
     "medical.view", "restricted.view", "passenger.edit", "flight.edit", "task.assign", "task.update.any", "task.update.own",
     "task.review", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "audit.view", "briefing.generate", "demo.reset",
-    "input.create", "preboard.signoff", "inventory.update", "inventory.manage",
+    "input.create", "preboard.signoff", "inventory.update", "inventory.manage", "preferences.manage",
   ],
-  contract_ca: ["task.update.own", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "briefing.generate", "demo.reset", "preboard.signoff", "inventory.update"],
+  contract_ca: ["task.update.own", "equipment.inspect", "advisory.ack", "handover.create", "handover.accept", "briefing.generate", "demo.reset", "preboard.signoff", "inventory.update", "preferences.manage"],
   pilot: ["advisory.ack", "briefing.generate", "audit.view", "demo.reset", "input.create"],
   security: ["advisory.ack", "task.update.own", "demo.reset"],
-  assistant: ["task.update.own", "demo.reset", "input.create"],
+  assistant: ["task.update.own", "demo.reset", "input.create", "preferences.manage"],
 };
 
 export const ROLE_LABELS: Record<RoleKey, string> = {

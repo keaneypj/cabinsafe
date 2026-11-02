@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { CA_SAM, createSeed, FEATURED_FLIGHT_ID, LEAD_ID } from "@/data/seed";
+import { PREBOARD_SECTIONS, preboardSectionOf } from "./checklists";
 import { answer } from "./copilot";
+import { effectiveEquipmentStatus } from "./readiness";
 import { boardingTime, computePreboarding, isPreboardOwner, type PreboardInput } from "./preboarding";
 
-const NOW = Date.UTC(2026, 9, 26, 14, 0);
+const NOW = Date.UTC(2026, 10, 4, 14, 0); // demo day
 
 function input(patch: Partial<PreboardInput> = {}): PreboardInput {
   const s = createSeed(NOW);
@@ -24,7 +26,9 @@ function input(patch: Partial<PreboardInput> = {}): PreboardInput {
 describe("pre-boarding", () => {
   it("collects checks, crew inputs, passenger items and attention items for the flight", () => {
     const v = computePreboarding(input());
-    expect(v.checks).toHaveLength(8);
+    expect(v.checks).toHaveLength(PREBOARD_SECTIONS.reduce((n, s) => n + s.items.length, 0));
+    expect(v.offboard).toHaveLength(14);
+    expect(v.checks.every((t) => preboardSectionOf(t.sourceRef))).toBe(true);
     expect(v.checks.every((t) => t.assigneeId === CA_SAM)).toBe(true);
     expect(v.inputs.map((i) => i.fromRole).sort()).toEqual(["assistant", "lead", "pilot"]);
     expect(v.pendingAcks).toHaveLength(3);
@@ -37,7 +41,7 @@ describe("pre-boarding", () => {
 
   it("keeps 'Needs attention' to items that affect boarding", () => {
     const v = computePreboarding(input());
-    expect(v.attention.map((a) => a.kind).sort()).toEqual(["advisory", "blocked", "blocker", "equipment", "equipment"]);
+    expect(v.attention.map((a) => a.kind).sort()).toEqual(["advisory", "blocked", "blocker", "equipment"]);
     expect(v.attention.some((a) => a.label.startsWith("FL-03"))).toBe(false); // minor item on non-critical equipment
   });
 
@@ -77,5 +81,18 @@ describe("pre-boarding", () => {
     expect(a.kind).toBe("preboarding");
     expect(a.markdown).toMatch(/Capt\. Daniel Hart/);
     expect(a.markdown).toMatch(/Pilot in Command/);
+  });
+});
+
+describe("demo-day equipment dates", () => {
+  it("shows everything current on Nov 4, 2026 except two overdue items", () => {
+    const s = createSeed(NOW);
+    const overdue = s.equipment.filter((e) => effectiveEquipmentStatus(e, NOW) === "inspection_due").map((e) => e.code);
+    expect(overdue.sort()).toEqual(["AED-01", "TMS-01"]);
+    for (const e of s.equipment) {
+      expect(e.lastInspectionAt! <= "2026-11-02T23:59:59.999Z").toBe(true);
+      if (!overdue.includes(e.code)) expect(e.nextInspectionDue >= "2026-11-05").toBe(true);
+    }
+    expect(s.equipment.filter((e) => effectiveEquipmentStatus(e, NOW) === "due_soon")).toEqual([]);
   });
 });

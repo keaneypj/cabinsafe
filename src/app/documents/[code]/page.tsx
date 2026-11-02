@@ -26,7 +26,7 @@ function Doc() {
   const v = useSearchParams().get("v");
   const decoded = decodeURIComponent(code);
   const d = DOCUMENTS.find((x) => x.code === decoded && (v ? x.version === v : x.status !== "superseded")) ?? DOCUMENTS.find((x) => x.code === decoded);
-  if (!d) return <EmptyState title="Document not found" action={<LinkButton href="/documents" variant="secondary">Library</LinkButton>} />;
+  if (!d) return <EmptyState title="Document not found" action={<LinkButton href="/documents" variant="secondary">Documents</LinkButton>} />;
   return (
     <div>
       <PageTitle eyebrow={`${d.code} · version ${d.version}`} title={d.title} subtitle={<Badge tone={STATUS[d.status].tone}>{STATUS[d.status].label}</Badge>} />

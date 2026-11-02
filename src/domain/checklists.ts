@@ -31,7 +31,8 @@ export const CATEGORY_LABELS: Record<ChecklistCategory, string> = {
   postflight_discrepancy: "Postflight Discrepancies",
   restock: "Restocking & Follow-up",
   coordination: "Coordination",
-  preboarding: "Pre-Boarding · Everyday Checks",
+  preboarding: "Pre-Boarding Checklist",
+  offboarding: "Off-Boarding Checklist",
 };
 
 export const PREFLIGHT_ORDER: ChecklistCategory[] = [
@@ -49,7 +50,131 @@ export const PREFLIGHT_ORDER: ChecklistCategory[] = [
   "preboarding",
 ];
 
-export const POSTFLIGHT_ORDER: ChecklistCategory[] = ["postflight_discrepancy", "restock"];
+export const POSTFLIGHT_ORDER: ChecklistCategory[] = ["offboarding", "postflight_discrepancy", "restock"];
+
+export interface ChecklistSection {
+  id: string;
+  title: string;
+  items: string[];
+}
+
+/** The cabin host's pre-boarding checklist, in order. Edit the wording here; the count updates itself. */
+export const PREBOARD_SECTIONS: ChecklistSection[] = [
+  {
+    id: "fbo",
+    title: "At the FBO",
+    items: [
+      "Check in with the FBO front desk and confirm departure time",
+      "Confirm catering has arrived and matches the order",
+      "Check catering temperatures and that items are labeled",
+      "Collect everything delivered to the FBO: flowers, newspapers, magazines, packages, dry cleaning",
+      "Collect clean dishes/serviceware, fridge bag, and ice",
+      "Send catering, dishes, fridge bag, flowers, newspapers and all deliveries out to the aircraft",
+      "Confirm passenger count and any special requests with the captain",
+    ],
+  },
+  {
+    id: "onboard",
+    title: "First onboard",
+    items: [
+      "Do a quick walkthrough of the entire cabin",
+      "Brief with the pilots: flight time, weather, expected turbulence, passenger count",
+      "Turn on cabin lights",
+      "Set cabin temperature to the principal's preference",
+      "Turn on and set TVs / moving map",
+      "Check Wi-Fi is working and the password card is out",
+      "Visually confirm emergency equipment is in place",
+    ],
+  },
+  {
+    id: "galley",
+    title: "Galley and catering",
+    items: [
+      "Confirm all food is correct against the order",
+      "Put all food away at proper temperatures",
+      "Check ovens, coffee maker and water are working",
+      "Stock the bar and beverages to the principal's preferences",
+      "Stock snacks",
+      "Load dishes and serviceware",
+    ],
+  },
+  {
+    id: "setup",
+    title: "Cabin setup",
+    items: [
+      "Set up the welcome table",
+      "Place flowers and newspapers",
+      "Seats upright, seatbelts crossed neatly",
+      "Blankets and pillows set out",
+      "If it's an overnight or long flight: get the correct bed linens out, ready to make beds once in the air",
+      "Chargers and headsets set out",
+      "Set cabin music if requested",
+    ],
+  },
+  {
+    id: "lav",
+    title: "Lavatories",
+    items: ["Clean and fully stocked", "Toilet paper folded, amenities and hand towels set out"],
+  },
+  {
+    id: "final",
+    title: "Final check",
+    items: ["Final cabin walkthrough", "Trash emptied and fresh bags in", "Stair carpet / entry area ready", "Confirm boarding time with the captain"],
+  },
+];
+
+/** The cabin host's off-boarding checklist, in order. */
+export const OFFBOARD_ITEMS_TEXT: string[] = [
+  "Check every seat and compartment for items left behind",
+  "Remove all trash",
+  "Remove leftover catering and handle it per the principal's preferences",
+  "Clean the galley: ovens, coffee maker, counters, sinks",
+  "Bag dishes and serviceware for cleaning",
+  "Strip beds, bag linens for laundry, fold blankets",
+  "Vacuum the cabin",
+  "Wipe down all tables and surfaces",
+  "Clean and restock the lavatories",
+  "Seats upright, seatbelts crossed",
+  "Note any low inventory items",
+  "Report anything broken to the pilots for maintenance",
+  "Turn off TVs and cabin lights (coordinate with the crew)",
+  "Leave handover notes for the next cabin host",
+];
+
+/** Template key for a pre-boarding item, e.g. "pb-fbo-1". */
+export const preboardKey = (sectionId: string, n: number) => `pb-${sectionId}-${n}`;
+
+/** The pre-boarding section a task belongs to, from its template key. */
+export function preboardSectionOf(sourceRef: string | undefined): string | undefined {
+  return sourceRef?.match(/^template:pb-([a-z]+)-[0-9]+$/)?.[1];
+}
+
+const PREBOARD_ITEMS: ChecklistTemplateItem[] = PREBOARD_SECTIONS.flatMap((sec) =>
+  sec.items.map((title, i) => ({
+    key: preboardKey(sec.id, i + 1),
+    title,
+    detail: `Pre-boarding · ${sec.title}`,
+    category: "preboarding" as const,
+    phase: "preflight" as const,
+    priority: "normal" as const,
+    requiresSignOff: false,
+    // At the FBO first, then onboard; everything done 45 minutes before departure.
+    dueOffsetHours: sec.id === "fbo" ? 2 : 0.75,
+    defaultAssignee: "attendant" as const,
+  })),
+);
+
+const OFFBOARD_ITEMS: ChecklistTemplateItem[] = OFFBOARD_ITEMS_TEXT.map((title, i) => ({
+  key: `ob-${i + 1}`,
+  title,
+  detail: "Off-boarding · after the passengers leave",
+  category: "offboarding" as const,
+  phase: "postflight" as const,
+  priority: "normal" as const,
+  requiresSignOff: false,
+  dueOffsetHours: 2,
+  defaultAssignee: "attendant" as const,
+}));
 
 export const CHECKLIST_TEMPLATE: ChecklistTemplateItem[] = [
   // Briefing review
@@ -79,25 +204,25 @@ export const CHECKLIST_TEMPLATE: ChecklistTemplateItem[] = [
   // Crew briefing
   { key: "crw-brief", title: "Crew safety briefing with flight crew", detail: "Present the cabin safety briefing to the PIC and SIC. Record items requiring pilot coordination.", category: "crew_briefing", phase: "preflight", priority: "critical", requiresSignOff: true, dueOffsetHours: 1.5, coordinateWith: ["pilot"], defaultAssignee: "lead" },
   { key: "crw-ack", title: "Cabin attendant briefing acknowledgement", detail: "Assigned cabin attendant acknowledges the briefing and their responsibilities.", category: "crew_briefing", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 1.25, documentRef: "CSI-HND-005", defaultAssignee: "attendant" },
-  // Pre-boarding — the cabin attendant's final checks before passengers board (due 45 min before departure)
-  { key: "pb-walk", title: "Final cabin walk-through — seats, belts, stowage, aisles clear", detail: "Walk all five zones: seats upright and positioned, belts laid out, overhead and credenza stowage latched, aisles and exits unobstructed.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-OPS-001", defaultAssignee: "attendant" },
-  { key: "pb-seals", title: "Visual check of emergency equipment seals at each station", detail: "Confirm seals and indicators are intact on the equipment visible at each station. Report any change immediately as a discrepancy.", category: "preboarding", phase: "preflight", priority: "critical", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-OPS-001", defaultAssignee: "attendant" },
-  { key: "pb-galley", title: "Galley secured for boarding — hot liquids, inserts, latches", detail: "Hot liquids stowed or attended, inserts latched, knives and glassware secured before passengers move through the forward cabin.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
-  { key: "pb-lav", title: "Lavatories checked, stocked and ready", detail: "Forward, suite and aft lavatories cleaned, stocked and checked for loose items.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
-  { key: "pb-welcome", title: "Welcome service prepared per documented preferences", detail: "Prepare welcome service from passenger preference records only; confirm allergen-safe items are segregated.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-CAT-003", defaultAssignee: "attendant" },
-  { key: "pb-climate", title: "Cabin temperature, lighting and ambience set for boarding", detail: "Set cabin temperature, lighting and audio for boarding as documented.", category: "preboarding", phase: "preflight", priority: "normal", requiresSignOff: false, dueOffsetHours: 0.75, defaultAssignee: "attendant" },
-  { key: "pb-confid", title: "Confidential materials and crew items secured", detail: "Manifest and briefing papers stowed; only aliases visible; crew bags stowed.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.75, documentRef: "CSI-SEC-007", defaultAssignee: "attendant" },
-  { key: "pb-sequence", title: "Boarding sequence and airstair confirmed with flight crew and security", detail: "Confirm boarding order, assistance timing and airstair/door readiness with the PIC and security lead.", category: "preboarding", phase: "preflight", priority: "high", requiresSignOff: false, dueOffsetHours: 0.5, coordinateWith: ["pilot", "security"], defaultAssignee: "attendant" },
+  // Pre-boarding — the cabin host's checklist, grouped into sections (see PREBOARD_SECTIONS)
+  ...PREBOARD_ITEMS,
   // Postflight
   { key: "pf-log", title: "Record cabin discrepancies", detail: "Record any cabin, galley or equipment discrepancies observed during the flight.", category: "postflight_discrepancy", phase: "postflight", priority: "high", requiresSignOff: false, dueOffsetHours: 1, documentRef: "CSI-OPS-001", defaultAssignee: "lead" },
   { key: "pf-used", title: "Report emergency or medical equipment used or opened", detail: "Any opened seal or used item is recorded as a discrepancy for replacement.", category: "postflight_discrepancy", phase: "postflight", priority: "critical", requiresSignOff: true, dueOffsetHours: 1, defaultAssignee: "lead" },
   { key: "pf-restock", title: "Restock medical consumables and cabin supplies", detail: "Restock consumables and raise replacement requests for sealed equipment.", category: "restock", phase: "postflight", priority: "high", requiresSignOff: false, dueOffsetHours: 12, defaultAssignee: "attendant" },
   { key: "pf-clean", title: "Galley sanitation and allergen cleandown", detail: "Full galley cleandown when an allergen precaution applied on the flight.", category: "restock", phase: "postflight", priority: "high", requiresSignOff: false, dueOffsetHours: 4, documentRef: "CSI-CAT-003", defaultAssignee: "attendant" },
   { key: "pf-confid", title: "Secure confidential materials and passenger items", detail: "Clear and secure documents, devices and personal items left on board.", category: "restock", phase: "postflight", priority: "high", requiresSignOff: false, dueOffsetHours: 1, documentRef: "CSI-SEC-007", defaultAssignee: "lead" },
+  // Off-boarding — the cabin host's checklist after the passengers leave
+  ...OFFBOARD_ITEMS,
 ];
 
 export function checklistTaskId(flightId: string, key: string): string {
   return `chk:${flightId}:${key}`;
+}
+
+/** Checklist for an upcoming flight: all preflight items plus the off-boarding list, ready to tick after landing. */
+export function buildUpcomingChecklist(flight: Flight, nowIso: string): Task[] {
+  return buildChecklist(flight, nowIso).filter((t) => t.phase === "preflight" || t.category === "offboarding");
 }
 
 /** Instantiate the checklist template for a flight. */

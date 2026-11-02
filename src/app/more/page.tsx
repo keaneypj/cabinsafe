@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookOpen, ChevronRight, ClipboardCheck, Film, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Users, UsersRound } from "lucide-react";
+import { BookOpen, ChevronRight, ClipboardCheck, Film, CircleAlert, CloudLightning, Handshake, History, Info, Play, Repeat, RotateCcw, Sparkles, Users, UsersRound } from "lucide-react";
 import { AppearanceControl } from "@/components/Appearance";
 import { DemoIntroSheet } from "@/components/DemoCoach";
 import { RoleSheet } from "@/components/RoleSwitcher";
@@ -24,7 +24,8 @@ export default function MorePage() {
     {
       title: "Operations",
       items: [
-        { href: "/preboard", icon: ClipboardCheck, label: "Pre-Boarding Checklist", sub: "Everyday checks and items added by others" },
+        { href: "/preboard", icon: ClipboardCheck, label: "Pre-Boarding Checklist", sub: "Pre-boarding, items added by others and off-boarding" },
+        { href: "/copilot", icon: Sparkles, label: "Safety Copilot", sub: "Briefings and answers grounded in records" },
         { href: "/intel", icon: CloudLightning, label: "Risk Intelligence", sub: "Weather, security, disaster and health advisories" },
         { href: "/passengers", icon: Users, label: "Passenger Profiles", sub: "Accommodations and rules-based preparation" },
         { href: "/more/discrepancies", icon: CircleAlert, label: "Discrepancies", sub: "Postflight and inspection findings", badge: openDisc },
@@ -36,7 +37,7 @@ export default function MorePage() {
         { href: "/crew", icon: UsersRound, label: "Crew", sub: "Assignments, queues, acknowledgements" },
         { href: "/handovers", icon: Handshake, label: "Handovers", sub: "Structured transfer of responsibility", badge: pendingHandovers },
         { href: "/audit", icon: History, label: "Audit History", sub: "Time-stamped record of actions" },
-        { href: "/documents", icon: BookOpen, label: "Reference Library", sub: "Versioned demonstration documents" },
+        { href: "/documents", icon: BookOpen, label: "Documents", sub: "Training, safety and handover documents" },
       ],
     },
     {

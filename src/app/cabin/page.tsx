@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useMemo, useState } from "react";
-import { ChevronRight, List, Map as MapIcon } from "lucide-react";
+import { ChevronRight, List, Map as MapIcon, Package, ShieldPlus } from "lucide-react";
 import { CabinInventory } from "@/components/CabinInventory";
 import { CabinMap, CATEGORY_META, STATUS_STYLE, StatusLegend } from "@/components/CabinMap";
 import { EquipmentSheet } from "@/components/EquipmentSheet";
@@ -10,7 +10,7 @@ import { Card, Chip, PageTitle, Segmented, VerifyNotice } from "@/components/ui"
 import { AIRCRAFT } from "@/data/aircraft";
 import { effectiveEquipmentStatus } from "@/domain/readiness";
 import type { Equipment, EquipmentCategory, EquipmentStatus, ZoneId } from "@/domain/types";
-import { fmtRelative } from "@/lib/format";
+import { cx, fmtRelative } from "@/lib/format";
 import { useNow } from "@/store/hooks";
 import { useStore } from "@/store/store";
 
@@ -39,6 +39,10 @@ function Cabin() {
   const now = useNow();
   const equipment = useStore((s) => s.equipment);
   const [view, setView] = useState<"map" | "list" | "inventory">(sp.get("view") === "inventory" ? "inventory" : "map");
+  const [mapOrList, setMapOrList] = useState<"map" | "list">("map");
+  const inventory = useStore((s) => s.inventory);
+  const toRestock = inventory.filter((i) => i.onBoard < i.par).length;
+  const showSection = (next: "equipment" | "inventory") => setView(next === "inventory" ? "inventory" : mapOrList);
   const [filter, setFilter] = useState("all");
   const [zone, setZone] = useState<ZoneId | undefined>();
   const selected = sp.get("eq");
@@ -64,13 +68,28 @@ function Cabin() {
         eyebrow={`${AIRCRAFT.tail} · ${AIRCRAFT.year} G700${view === "inventory" ? "" : " · conceptual"}`}
         title={view === "inventory" ? "Cabin Inventory" : "Cabin Safety Map"}
         subtitle={view === "inventory" ? "What's on board against usual stock · tap + or − to log" : "Five living zones · tap any marker to open its equipment record"}
-        action={<div className="w-64"><Segmented ariaLabel="View" value={view} onChange={setView} options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }, { value: "inventory", label: "Inventory" }]} /></div>}
       />
+      {/* Two big buttons: emergency equipment or cabin inventory */}
+      <div className="mb-4 grid grid-cols-2 gap-2.5" role="tablist" aria-label="Cabin section">
+        <SectionButton active={view !== "inventory"} onClick={() => showSection("equipment")} icon={<ShieldPlus className="size-6" />} label="Safety Equipment" sub={`${equipment.length} items`} testId="cabin-equipment-tab" />
+        <SectionButton active={view === "inventory"} onClick={() => showSection("inventory")} icon={<Package className="size-6" />} label="Inventory" sub={toRestock ? `${toRestock} to restock` : "All stocked"} testId="cabin-inventory-tab" />
+      </div>
       {view === "inventory" ? (
         <CabinInventory />
       ) : (
       <>
       <VerifyNotice className="mb-3" />
+      <div className="mb-3 w-44">
+        <Segmented
+          ariaLabel="Equipment view"
+          value={view as "map" | "list"}
+          onChange={(v) => {
+            setMapOrList(v);
+            setView(v);
+          }}
+          options={[{ value: "map", label: "Map" }, { value: "list", label: "List" }]}
+        />
+      </div>
 
       <div className="scroll-x -mx-4 px-4 mb-3">
         <div className="flex gap-1.5 w-max">
@@ -148,5 +167,23 @@ function Cabin() {
       )}
       <EquipmentSheet equipmentId={selected} onClose={close} />
     </div>
+  );
+}
+
+function SectionButton({ active, onClick, icon, label, sub, testId }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string; sub: string; testId: string }) {
+  return (
+    <button
+      role="tab"
+      aria-selected={active}
+      onClick={onClick}
+      className={cx("flex min-h-[4.5rem] items-center gap-3 rounded-2xl px-3.5 text-left transition-colors", active ? "bg-gold text-midnight" : "card text-ivory active:bg-navy-700")}
+      data-testid={testId}
+    >
+      <span className="shrink-0">{icon}</span>
+      <span className="min-w-0">
+        <span className="block text-[1.0625rem] font-semibold leading-tight">{label}</span>
+        <span className={cx("block text-[0.75rem]", active ? "opacity-80" : "text-slate-400")}>{sub}</span>
+      </span>
+    </button>
   );
 }

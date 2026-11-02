@@ -6,7 +6,8 @@ import { ChevronRight, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { computePreboarding, type PreboardView } from "@/domain/preboarding";
 import { isOpenTask } from "@/domain/readiness";
 import type { Flight } from "@/domain/types";
-import { cx, fmtAirportTime, fmtRelative } from "@/lib/format";
+import { airport } from "@/data/airports";
+import { cx, fmtAirportTime, fmtDate, fmtRelative } from "@/lib/format";
 import { useCrewName, useFeaturedFlight, useFlightAdvisories, useNow, useUpcomingFlights } from "@/store/hooks";
 import { useMe, useStore } from "@/store/store";
 import { ProgressBar } from "./ui";
@@ -42,83 +43,31 @@ export function remainingItems(v: PreboardView): number {
 
 /** Prominent "Start here" card for Home — the first thing to do before a flight. */
 export function PreboardHero({ flight }: { flight: Flight }) {
-  const now = useNow();
-  const name = useCrewName();
   const v = usePreboardView(flight);
   if (!v) return null;
-
-  if (v.signoff) {
-    return (
-      <Link href={`/preboard?flight=${flight.id}`} className="card flex items-center gap-3 p-4 active:bg-navy-700 animate-fade-up" data-testid="preboard-card">
-        <span className="grid size-11 place-items-center rounded-xl bg-ok-bg text-ok shrink-0">
-          <ShieldCheck className="size-6" />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block font-semibold text-ivory">Pre-boarding confirmed</span>
-          <span className="block text-[0.8125rem] text-slate-400">
-            {flight.callsign} · {name(v.signoff.byId)} · {fmtRelative(v.signoff.at, now)}
-          </span>
-        </span>
-        <ChevronRight className="size-5 text-slate-500/70 shrink-0" />
-      </Link>
-    );
-  }
-
-  const everydayDone = v.checks.length - v.checks.filter(isOpenTask).length;
-  const othersTotal = v.inputs.filter((i) => i.requiresAck).length;
-  const othersDone = othersTotal - v.pendingAcks.length;
-  const started = v.progress.done > 0;
-  const r = 26;
-  const c = 2 * Math.PI * r;
+  const done = v.checks.length - v.checks.filter(isOpenTask).length;
+  const takeoff = `${fmtDate(flight.departAt, airport(flight.departure)?.tz)} · ${fmtAirportTime(flight.departAt, flight.departure)}`;
+  const label = v.signoff ? "View Pre-Boarding" : done > 0 ? "Continue Pre-Boarding" : "Begin Pre-Boarding";
 
   return (
     <Link
       href={`/preboard?flight=${flight.id}`}
       className="block rounded-[1.25rem] bg-gold text-midnight p-5 shadow-[0_12px_32px_-16px_color-mix(in_oklab,var(--color-gold)_80%,transparent)] active:opacity-90 transition-opacity animate-fade-up"
       data-testid="preboard-card"
-      aria-label={`Start here: Pre-Boarding Checklist for ${flight.callsign}, ${v.progress.pct}% complete`}
+      aria-label={`Pre-Boarding Checklist for ${flight.departure} to ${flight.destination}, takeoff ${takeoff}, ${done} of ${v.checks.length} done`}
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="inline-flex items-center gap-1.5 rounded-full bg-midnight/20 px-2.5 py-1 text-[0.75rem] font-semibold">
-            <ClipboardCheck className="size-3.5" strokeWidth={2.4} /> Start here
-          </div>
-          <h2 className="mt-2.5 text-[1.5rem] font-bold leading-tight tracking-[-0.02em]">Pre-Boarding Checklist</h2>
-          <p className="mt-0.5 text-[0.9375rem] opacity-85">
-            {flight.callsign} · boarding {fmtAirportTime(v.boardingAt, flight.departure)} · {fmtRelative(v.boardingAt, now)}
-          </p>
-        </div>
-        <svg width="64" height="64" viewBox="0 0 64 64" className="shrink-0" role="img" aria-label={`${v.progress.pct}% complete`}>
-          <g transform="rotate(-90 32 32)">
-            <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" style={{ stroke: "currentColor", opacity: 0.22 }} />
-            <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - v.progress.pct / 100)} style={{ stroke: "currentColor", transition: "stroke-dashoffset 0.8s ease" }} />
-          </g>
-          <text x="32" y="33" textAnchor="middle" dominantBaseline="middle" fontSize="15" fontWeight="700" style={{ fill: "currentColor" }}>
-            {v.progress.pct}%
-          </text>
-        </svg>
-      </div>
-
-      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
-        <HeroStat value={`${everydayDone}/${v.checks.length}`} label="Everyday" />
-        <HeroStat value={`${othersDone}/${othersTotal}`} label="From others" />
-        <HeroStat value={String(v.attention.length)} label="Attention" />
-      </div>
-
+      <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em]">Pre-Boarding Checklist</h2>
+      <p className="mt-1 text-[0.9375rem] opacity-85" data-testid="preboard-card-flight">
+        {flight.departure} → {flight.destination} · Takeoff {takeoff}
+      </p>
+      <p className="mt-3 text-[2rem] font-bold leading-none tnum" data-testid="preboard-card-count">
+        {done}/{v.checks.length}
+      </p>
       <div className="mt-4 flex min-h-12 items-center justify-center gap-1.5 rounded-[0.875rem] bg-navy text-ivory text-[1.0625rem] font-semibold">
-        {started ? "Continue Pre-Boarding" : "Begin Pre-Boarding"}
+        {label}
         <ChevronRight className="size-5" />
       </div>
     </Link>
-  );
-}
-
-function HeroStat({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="rounded-xl bg-midnight/15 py-2">
-      <div className="text-[1.0625rem] font-bold tnum leading-tight">{value}</div>
-      <div className="text-[0.6875rem] font-medium opacity-80">{label}</div>
-    </div>
   );
 }
 

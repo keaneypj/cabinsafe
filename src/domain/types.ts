@@ -216,7 +216,8 @@ export type ChecklistCategory =
   | "postflight_discrepancy"
   | "restock"
   | "coordination"
-  | "preboarding";
+  | "preboarding"
+  | "offboarding";
 
 export interface TaskEvent {
   at: ISODate;
@@ -343,6 +344,7 @@ export interface ReferenceDocument {
 // ───────────────────────────── Audit ─────────────────────────────
 
 export type AuditAction =
+  | "preferences.update"
   | "checklist.update"
   | "task.create"
   | "task.assign"
@@ -368,7 +370,7 @@ export type AuditAction =
 
 // ───────────────────────────── Cabin inventory ─────────────────────────────
 
-export type InventoryCategory = "wine" | "soft_drinks" | "fresh" | "snacks" | "coffee" | "other";
+export type InventoryCategory = "galley" | "bar" | "serviceware" | "linens" | "lav" | "cabin" | "first_aid" | "emergency" | "other";
 
 /** A routinely stocked catering item: how many are on board against the usual stock level. */
 export interface InventoryItem {
@@ -378,8 +380,28 @@ export interface InventoryItem {
   /** Usual stock level (the "5" in "3/5"). */
   par: number;
   onBoard: number;
+  /** False until the usual amount has been confirmed against the real aircraft (shown as "To be verified"). */
+  verified?: boolean;
   updatedAt?: ISODate;
   updatedById?: string;
+}
+
+// ───────────────────────────── Preferences ─────────────────────────────
+
+export type PreferenceCategory = "food" | "beverages" | "temperature" | "entertainment" | "bedding" | "seating" | "welcome" | "avoid";
+
+export interface Preference {
+  id: string;
+  category: PreferenceCategory;
+  text: string;
+}
+
+/** The principal, or someone who flies regularly (family, guests, staff), and what they like. */
+export interface PreferencePerson {
+  id: string;
+  name: string;
+  relation: "principal" | "family" | "guest" | "staff";
+  preferences: Preference[];
 }
 
 export interface AuditEvent {

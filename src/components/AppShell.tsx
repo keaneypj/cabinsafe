@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { ClipboardCheck, Ellipsis, House, LayoutGrid, PlaneTakeoff, Sparkles, WifiOff } from "lucide-react";
+import { ClipboardCheck, Ellipsis, Heart, House, LayoutGrid, PlaneTakeoff, WifiOff } from "lucide-react";
 import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
@@ -19,8 +19,8 @@ const NAV = [
   { href: "/flights", label: "Flights", icon: PlaneTakeoff, match: (p: string) => p.startsWith("/flights") },
   { href: "/preboard", label: "Boarding", icon: ClipboardCheck, match: (p: string) => p.startsWith("/preboard") },
   { href: "/cabin", label: "Cabin", icon: LayoutGrid, match: (p: string) => p.startsWith("/cabin") },
-  { href: "/copilot", label: "Copilot", icon: Sparkles, match: (p: string) => p.startsWith("/copilot") },
-  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/flights", "/preboard", "/cabin", "/copilot"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
+  { href: "/preferences", label: "Preferences", icon: Heart, match: (p: string) => p.startsWith("/preferences") },
+  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/flights", "/preboard", "/cabin", "/preferences"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
 ];
 
 function useOnline(): boolean {
@@ -102,6 +102,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Link>
           <div className="hidden md:block text-[0.8125rem] text-slate-400">Private aviation cabin safety</div>
           {hydrated ? <RoleChip /> : <Skeleton className="h-9 w-28 rounded-full" />}
+        </div>
+        {/* Phones have no sidebar, so the demo notice sits under the header on every page. */}
+        <div className="md:hidden border-t hairline px-4 py-1 text-center text-[0.6875rem] text-slate-500" data-testid="demo-banner">
+          Demonstration prototype. Synthetic data only.
         </div>
         {!online && (
           <div className="flex items-center justify-center gap-2 bg-warn-bg text-warn text-xs px-4 py-1.5" role="status">

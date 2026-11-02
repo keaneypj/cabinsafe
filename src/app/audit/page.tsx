@@ -14,7 +14,7 @@ const GROUPS: { key: string; label: string; match: (e: AuditEvent) => boolean }[
   { key: "checklist", label: "Checklists & tasks", match: (e) => e.action.startsWith("checklist") || e.action.startsWith("task") },
   { key: "equipment", label: "Equipment & stock", match: (e) => e.action.startsWith("equipment") || e.action.startsWith("discrepancy") || e.action.startsWith("inventory") },
   { key: "handover", label: "Handovers", match: (e) => e.action.startsWith("handover") },
-  { key: "records", label: "Records", match: (e) => /^(passenger|flight|advisory|briefing|demo|input|preboard)/.test(e.action) },
+  { key: "records", label: "Records", match: (e) => /^(passenger|preferences|flight|advisory|briefing|demo|input|preboard)/.test(e.action) },
 ];
 
 export default function AuditPage() {
