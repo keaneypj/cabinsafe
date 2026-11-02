@@ -60,18 +60,19 @@ page.on("console", (m) => m.type() === "error" && !/Failed to load resource/.tes
 
 console.log(`CabinSafe E2E against ${BASE}`);
 
-await step("Opening sequence plays on first visit and hands off to the tour", async () => {
+await step("Opening sequence plays on first visit, then opens Home", async () => {
   const fresh = await browser.newContext({ ...devices["iPhone 14 Pro"] });
   const p = await fresh.newPage();
+  const t0 = Date.now();
   await p.goto(BASE + "/", { waitUntil: "domcontentloaded" });
   await p.getByTestId("intro").waitFor();
   const text = await p.getByTestId("intro").innerText();
-  for (const s of ["CabinSafe", "Kate Keaney", "Kevin Carnes", "Aviation Search Group", "Cabin Attendant Subject Matter Expert", "Professionalism and Discretion", "today's jets"]) assert(text.includes(s), `intro missing: ${s}`);
-  await p.getByTestId("intro-tour").waitFor({ state: "visible", timeout: 15000 });
+  for (const s of ["CabinSafe", "Created by", "Kate Keaney", "Demo"]) assert(text.includes(s), `intro missing: ${s}`);
   await p.screenshot({ path: `${OUT}00-intro.png` });
-  await p.getByTestId("intro-tour").click();
-  await p.getByTestId("intro").waitFor({ state: "detached" });
-  await p.getByTestId("demo-coach").waitFor();
+  await p.getByTestId("intro").waitFor({ state: "detached", timeout: 10000 });
+  assert(Date.now() - t0 < 9000, "intro took too long");
+  await p.getByTestId("featured-flight").waitFor();
+  assert((await p.getByTestId("demo-coach").count()) === 0, "guided tour started on its own");
   await p.reload({ waitUntil: "domcontentloaded" });
   await p.getByTestId("featured-flight").waitFor();
   assert((await p.getByTestId("intro").count()) === 0, "intro replayed in the same session");

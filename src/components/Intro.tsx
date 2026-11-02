@@ -1,9 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ChevronRight, Cpu, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
-import { useStore } from "@/store/store";
 import { Logo } from "./Logo";
 
 /**
@@ -11,15 +8,16 @@ import { Logo } from "./Logo";
  * (or on demand via /?intro=1, e.g. More → Replay Intro).
  *
  *   Scene 1  A private jet crosses the screen; "CabinSafe" fades in and out.
- *   Scene 2  "Created by Kate Keaney" · "Demo".
- *   Scene 3  Kate Keaney and her three pillars, with the next step.
+ *   Scene 2  "Created by Kate Keaney" · "Demo", then the app opens on Home.
+ * The guided tour is not offered here; it is in More → Advanced → Experience CabinSafe.
  *
  * Always rendered in the dark cinematic palette, independent of the app theme.
  */
 
 export const INTRO_SEEN_KEY = "cabinsafe-intro-seen";
 
-const SCENE_TIMES = { reduced: [1800, 3600], full: [4600, 8600] };
+/** When scene 2 starts and when the intro hands over to Home (ms). About 4.5 seconds in all. */
+const SCENE_TIMES = { reduced: [1200, 2600], full: [2500, 4500] };
 
 export function shouldShowIntro(pathname: string, search: string): boolean {
   if (new URLSearchParams(search).get("intro") === "1") return true;
@@ -81,26 +79,13 @@ function Jet({ className }: { className?: string }) {
 }
 
 export function Intro({ onDone }: { onDone: () => void }) {
-  const router = useRouter();
   const [scene, setScene] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const [reduced, setReduced] = useState(false);
-  const [run, setRun] = useState(0);
 
   useEffect(() => {
     setReduced(window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   }, []);
-
-  useEffect(() => {
-    setScene(0);
-    const [t1, t2] = reduced ? SCENE_TIMES.reduced : SCENE_TIMES.full;
-    const a = setTimeout(() => setScene(1), t1);
-    const b = setTimeout(() => setScene(2), t2);
-    return () => {
-      clearTimeout(a);
-      clearTimeout(b);
-    };
-  }, [reduced, run]);
 
   const finish = useCallback(
     (then?: () => void) => {
@@ -115,6 +100,18 @@ export function Intro({ onDone }: { onDone: () => void }) {
   );
 
   useEffect(() => {
+    setScene(0);
+    const [t1, t2] = reduced ? SCENE_TIMES.reduced : SCENE_TIMES.full;
+    const a = setTimeout(() => setScene(1), t1);
+    const b = setTimeout(() => finish(), t2);
+    return () => {
+      clearTimeout(a);
+      clearTimeout(b);
+    };
+  }, [reduced, finish]);
+
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && finish();
     document.addEventListener("keydown", onKey);
     const overflow = document.body.style.overflow;
@@ -124,14 +121,6 @@ export function Intro({ onDone }: { onDone: () => void }) {
       document.body.style.overflow = overflow;
     };
   }, [finish]);
-
-  const startTour = () =>
-    finish(() => {
-      const s = useStore.getState();
-      s.resetDemo();
-      s.demoStart();
-      router.push("/");
-    });
 
   return (
     <div
@@ -144,7 +133,7 @@ export function Intro({ onDone }: { onDone: () => void }) {
     >
 
       {/* Skip */}
-      {scene < 2 && (
+      {!leaving && (
         <button
           onClick={() => finish()}
           className="absolute right-4 z-10 rounded-full bg-white/10 px-3.5 min-h-9 text-[0.8125rem] font-medium text-white/80 backdrop-blur hover:bg-white/15"
@@ -160,11 +149,11 @@ export function Intro({ onDone }: { onDone: () => void }) {
         {/* Horizon glow */}
         <div className="pointer-events-none absolute inset-x-0 top-[68%] h-px bg-gradient-to-r from-transparent via-[#d7bd8c]/35 to-transparent" aria-hidden />
         {!reduced && (
-          <div key={run} className="absolute left-0 top-[54%] w-[min(150vw,720px)] intro-fly">
+          <div className="absolute left-0 top-[54%] w-[min(150vw,720px)] intro-fly">
             <Jet className="w-full h-auto drop-shadow-[0_8px_24px_rgba(215,189,140,0.25)]" />
           </div>
         )}
-        <div key={`brand-${run}`} className="absolute inset-x-0 top-[22%] flex flex-col items-center intro-brand">
+        <div className="absolute inset-x-0 top-[22%] flex flex-col items-center intro-brand">
           <Logo size={56} />
           <div className="mt-3 text-[2.5rem] font-bold tracking-[-0.03em]">CabinSafe</div>
           <div className="mt-1 text-[0.75rem] font-medium uppercase tracking-[0.3em] text-[#d7bd8c]">Intelligence</div>
@@ -181,50 +170,6 @@ export function Intro({ onDone }: { onDone: () => void }) {
         </div>
       </div>
 
-      {/* Scene 3 — Kate */}
-      <div
-        className={`absolute inset-0 flex flex-col justify-center px-7 transition-opacity duration-700 ${scene === 2 ? "opacity-100" : "opacity-0 pointer-events-none"}`}
-        style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-        aria-hidden={scene !== 2}
-        inert={scene !== 2}
-      >
-        <div className="mx-auto w-full max-w-md">
-          <div className={scene === 2 ? "intro-rise" : ""}>
-            <div className="text-[0.75rem] font-medium uppercase tracking-[0.22em] text-[#d7bd8c]">Lead Cabin Attendant Candidate</div>
-            <h1 className="mt-2 text-[2.75rem] font-bold leading-[1.05] tracking-[-0.035em]">Kate Keaney</h1>
-          </div>
-
-          <ul className="mt-8 space-y-4">
-            {[
-              { icon: ShieldCheck, title: "Cabin Attendant Subject Matter Expert", sub: "Safety, service and preparation — done before anyone has to ask." },
-              { icon: Sparkles, title: "Professionalism and Discretion", sub: "Quiet excellence for the principal, family and guests." },
-              { icon: Cpu, title: "Technology adoption is critical with today's jets", sub: "Fluent with the systems modern aircraft and crews run on — this app is the proof." },
-            ].map((p, i) => (
-              <li key={p.title} className={`flex gap-3.5 ${scene === 2 ? "intro-rise" : ""}`} style={{ animationDelay: `${400 + i * 350}ms` }}>
-                <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#d7bd8c]/15 text-[#d7bd8c]">
-                  <p.icon className="size-5" />
-                </span>
-                <span>
-                  <span className="block text-[1.0625rem] font-semibold leading-snug">{p.title}</span>
-                  <span className="block text-[0.875rem] leading-snug text-white/60 mt-0.5">{p.sub}</span>
-                </span>
-              </li>
-            ))}
-          </ul>
-
-          <div className={`mt-10 space-y-2.5 ${scene === 2 ? "intro-rise" : ""}`} style={{ animationDelay: "1500ms" }}>
-            <button onClick={startTour} className="flex w-full min-h-[3.25rem] items-center justify-center gap-1.5 rounded-[0.875rem] bg-[#d7bd8c] text-[1.0625rem] font-semibold text-[#0c141d] active:opacity-85" data-testid="intro-tour">
-              Take the 5-minute tour <ChevronRight className="size-5" />
-            </button>
-            <button onClick={() => finish()} className="flex w-full min-h-12 items-center justify-center rounded-[0.875rem] bg-white/10 text-[1rem] font-medium text-white active:bg-white/15" data-testid="intro-enter">
-              Explore on my own
-            </button>
-            <button onClick={() => setRun((r) => r + 1)} className="mx-auto mt-1 flex min-h-9 items-center gap-1.5 text-[0.8125rem] text-white/50 hover:text-white/80">
-              <RotateCcw className="size-3.5" /> Replay intro
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
