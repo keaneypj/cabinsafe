@@ -153,7 +153,7 @@ const cabin: Guide = {
         p("Everything has a home. Put things back in the same place every trip so the next cabin host can find them."),
         table(
           ["What", "Where"],
-          ["Blankets and pillows", "Overhead bins in Zones 3 and 5, and under divan cushions"],
+          ["Blankets and pillows", "Side-ledge cabinets in Zones 3 and 5, and under divan cushions"],
           ["Bedding kits and duvets", "Stateroom wardrobe, lower shelf"],
           ["Amenity kits and slippers", "Galley drawer G-4 and the aft washroom cabinet"],
           ["Spare headphones and chargers", "Galley drawer G-2"],
@@ -162,7 +162,7 @@ const cabin: Guide = {
           ["Passenger luggage", "Aft baggage compartment; small bags under seats or in the closet"],
           ["Cleaning supplies", "Galley lower cabinet, kept away from food"],
         ),
-        note("Nothing heavy goes in overhead bins, and every door and drawer is latched for taxi, takeoff and landing."),
+        note("There are no overhead bins. Keep heavy items in low cabinets or the baggage compartment, and latch every door and drawer for taxi, takeoff and landing."),
       ],
     },
     {
@@ -172,7 +172,7 @@ const cabin: Guide = {
         h3("beds-seats", "Two facing seats into a bed"),
         ol("Clear the table and fold it away.", "Move both seats fully inboard on their tracks.", "Recline each seat to flat and raise the leg rests.", "Fit the mattress pad across both seats so there is no gap.", "Make the bed: fitted sheet, duvet, two pillows, then turn down one corner."),
         h3("beds-divan", "Divan into a bed"),
-        ol("Remove the back cushions and store them in the bin above.", "Pull the divan base out until it locks.", "Lay the mattress pad, then make the bed as above."),
+        ol("Remove the back cushions and store them in the forward closet.", "Pull the divan base out until it locks.", "Lay the mattress pad, then make the bed as above."),
         h3("beds-return", "Before landing"),
         p("All beds go back to seats and divans before landing, with belts available. Allow at least 20 minutes, and start early if several beds are made up."),
       ],
