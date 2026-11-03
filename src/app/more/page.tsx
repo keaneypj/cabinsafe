@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BookOpen, ChevronDown, ChevronRight, Film, CircleAlert, CloudLightning, Handshake, History, Info, PlaneTakeoff, Play, Repeat, RotateCcw, Sparkles, Users, UsersRound } from "lucide-react";
+import { ChevronDown, ChevronRight, Film, CircleAlert, CloudLightning, Handshake, History, Info, PlaneTakeoff, Play, Repeat, RotateCcw, Sparkles, Users, UsersRound } from "lucide-react";
 import { AppearanceControl } from "@/components/Appearance";
 import { DemoIntroSheet } from "@/components/DemoCoach";
 import { RoleSheet } from "@/components/RoleSwitcher";
@@ -26,7 +26,6 @@ export default function MorePage() {
   // Kept short for the demo. Everything else is still in the app, folded under Advanced.
   const main: Item[] = [
     { href: "/flights", icon: PlaneTakeoff, label: "Flights", sub: "Upcoming and past flights" },
-    { href: "/documents", icon: BookOpen, label: "Documents", sub: "Training, safety and handover documents" },
     { href: "/passengers", icon: Users, label: "Passenger Profiles", sub: "Who is flying and what they need" },
     { href: "/copilot", icon: Sparkles, label: "Safety Copilot", sub: "Ask questions and build a briefing" },
     { onClick: () => setConfirm(true), icon: RotateCcw, label: "Reset Demo", sub: "Start the demo again from the beginning", testid: "reset-demo" },

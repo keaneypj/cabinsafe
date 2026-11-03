@@ -1,7 +1,9 @@
+import { createHandoverForms } from "@/data/handoverForms";
 import { createInventory, LEGACY_CATEGORY } from "@/data/inventory";
 import { createPreferences } from "@/data/preferences";
 import { createSeed } from "@/data/seed";
 import { buildUpcomingChecklist } from "@/domain/checklists";
+import type { SubmittedHandoverForm } from "@/domain/handoverForm";
 import type { Equipment, InventoryCategory, InventoryItem, PreferencePerson, Task } from "@/domain/types";
 
 /** The eight everyday pre-boarding checks that the sectioned checklist replaces. */
@@ -64,4 +66,9 @@ export interface KeptParts {
 export function upgradeToV11<F extends KeptParts>(saved: V10Parts & KeptParts, version: number, fresh: F, nowMs: number = Date.now()): F {
   const v10 = version < 10 ? upgradeToV10(saved, nowMs) : saved;
   return { ...fresh, currentUserId: v10.currentUserId ?? fresh.currentUserId, inventory: v10.inventory ?? fresh.inventory, preferences: v10.preferences ?? fresh.preferences };
+}
+
+/** Version 13 adds the Handover Form list. Saved data is kept; the sample handover is added if there is no list yet. */
+export function upgradeToV13<T extends { handoverForms?: SubmittedHandoverForm[] }>(state: T): T & { handoverForms: SubmittedHandoverForm[] } {
+  return { ...state, handoverForms: state.handoverForms ?? createHandoverForms() };
 }
