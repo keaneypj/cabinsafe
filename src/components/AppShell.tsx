@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { ClipboardCheck, Ellipsis, Heart, House, LayoutGrid, WifiOff } from "lucide-react";
+import { BookOpen, ClipboardCheck, Ellipsis, Heart, House, LayoutGrid, WifiOff } from "lucide-react";
 import { cx } from "@/lib/format";
 import { useHydrated } from "@/store/hooks";
 import { useStore } from "@/store/store";
@@ -19,8 +19,12 @@ const NAV = [
   { href: "/preboard", label: "Boarding", icon: ClipboardCheck, match: (p: string) => p.startsWith("/preboard") },
   { href: "/cabin", label: "Cabin", icon: LayoutGrid, match: (p: string) => p.startsWith("/cabin") },
   { href: "/preferences", label: "Preferences", icon: Heart, match: (p: string) => p.startsWith("/preferences") },
-  { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !["/", "/preboard", "/cabin", "/preferences"].some((x) => (x === "/" ? p === "/" : p.startsWith(x))) },
+  { href: "/documents", label: "Documents", icon: BookOpen, match: (p: string) => p.startsWith("/documents") },
 ];
+
+/** More is not in the bottom bar: phones reach it from the button at the top right, computers from the side menu. */
+const MORE = { href: "/more", label: "More", icon: Ellipsis, match: (p: string) => !NAV.some((n) => n.match(p)) };
+const SIDE_NAV = [...NAV, MORE];
 
 function useOnline(): boolean {
   const [online, setOnline] = useState(true);
@@ -77,7 +81,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Wordmark />
         </Link>
         <nav aria-label="Primary" className="flex flex-col gap-1">
-          {NAV.map((n) => {
+          {SIDE_NAV.map((n) => {
             const active = n.match(pathname);
             return (
               <Link key={n.href} href={n.href} aria-current={active ? "page" : undefined} aria-label={n.href === "/preboard" && hydrated && preboardLeft ? `${n.label}, ${preboardLeft} items to do` : undefined} className={cx("flex items-center gap-3 rounded-lg px-3 min-h-10 text-[0.9375rem] transition-colors", active ? "bg-gold/12 text-gold font-semibold" : "text-ivory hover:bg-navy-700")}>
@@ -100,7 +104,18 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Wordmark />
           </Link>
           <div className="hidden md:block text-[0.8125rem] text-slate-400">Private aviation cabin safety</div>
-          {hydrated ? <RoleChip /> : <Skeleton className="h-9 w-28 rounded-full" />}
+          <div className="flex items-center gap-2">
+            {hydrated ? <RoleChip /> : <Skeleton className="h-9 w-28 rounded-full" />}
+            <Link
+              href={MORE.href}
+              aria-label="More"
+              aria-current={MORE.match(pathname) ? "page" : undefined}
+              className={cx("md:hidden grid size-9 place-items-center rounded-full transition-colors", MORE.match(pathname) ? "bg-gold text-midnight" : "bg-navy-700 text-gold hover:bg-gold/18")}
+              data-testid="nav-more"
+            >
+              <Ellipsis className="size-5" strokeWidth={2.2} aria-hidden />
+            </Link>
+          </div>
         </div>
         {/* Phones have no sidebar, so the demo notice sits under the header on every page. */}
         <div className="md:hidden border-t hairline px-4 py-1 text-center text-[0.6875rem] text-slate-500" data-testid="demo-banner">

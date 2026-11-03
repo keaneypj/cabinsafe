@@ -3,9 +3,11 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { createInventory } from "@/data/inventory";
+import { createHandoverForms } from "@/data/handoverForms";
 import { createPreferences } from "@/data/preferences";
 import { createSeed, LEAD_ID, type SeedState } from "@/data/seed";
 import { buildUpcomingChecklist } from "@/domain/checklists";
+import { cleanHandoverForm, validateHandoverForm, type HandoverFormData, type SubmittedHandoverForm } from "@/domain/handoverForm";
 import { CATEGORY_LABELS, parseCount, validateInventoryItem, type InventoryItemInput } from "@/domain/inventory";
 import { can, type Permission } from "@/domain/permissions";
 import { computePreboarding } from "@/domain/preboarding";
@@ -32,10 +34,10 @@ import type {
   TaskStatus,
 } from "@/domain/types";
 import { uid } from "@/lib/format";
-import { upgradeToV11 } from "./migrate";
+import { upgradeToV11, upgradeToV13 } from "./migrate";
 
 export const STORAGE_KEY = "cabinsafe-demo";
-const SCHEMA_VERSION = 12;
+const SCHEMA_VERSION = 13;
 /** Repeated count changes to one item by the same person within this window share one audit entry. */
 const INVENTORY_AUDIT_MERGE_MS = 5 * 60_000;
 
@@ -56,6 +58,8 @@ export interface AppState extends SeedState {
   inventory: InventoryItem[];
   /** The principal and frequent passengers, with what they like. */
   preferences: PreferencePerson[];
+  /** Handover Forms submitted after each flight, kept on this device. */
+  handoverForms: SubmittedHandoverForm[];
   intel: Record<string, IntelSnapshot>;
   demo: DemoState;
   hydrated: boolean;
@@ -109,6 +113,7 @@ export interface Actions {
   addPreference(personId: string, category: PreferenceCategory, text: string): Result;
   updatePreference(personId: string, prefId: string, text: string): Result;
   removePreference(personId: string, prefId: string): Result;
+  submitHandoverForm(form: HandoverFormData): Result<SubmittedHandoverForm>;
   resetDemo(): void;
   demoStart(): void;
   demoGo(step: number): void;
@@ -128,6 +133,7 @@ function initialState(): AppState {
     preboardSignoffs: [],
     inventory: createInventory(),
     preferences: createPreferences(),
+    handoverForms: createHandoverForms(),
     intel: {},
     demo: { active: false, step: 0, done: {} },
     hydrated: false,
@@ -723,6 +729,16 @@ export const useStore = create<Store>()(
           return { ok: true };
         },
 
+        submitHandoverForm(form) {
+          const errors = validateHandoverForm(form);
+          const first = Object.values(errors)[0];
+          if (first) return { ok: false, error: `Check the form: ${first}` };
+          const saved: SubmittedHandoverForm = { ...cleanHandoverForm(form), id: uid("hof"), submittedAt: new Date().toISOString(), submittedById: me().id };
+          set((s) => ({ handoverForms: [saved, ...s.handoverForms] }));
+          pushAudit(audit("handover.create", "handover-form", saved.id, `Handover Form submitted by ${saved.attendantName} for ${saved.flightDate}, parked at ${saved.parkingAirport}`));
+          return { ok: true, value: saved };
+        },
+
         saveIntel(key, snap) {
           set((s) => ({ intel: { ...s.intel, [key]: snap } }));
         },
@@ -758,9 +774,13 @@ export const useStore = create<Store>()(
       },
       // Versions 8–11 get the current demo flights and checklists (fixed dates; Kate Keaney as cabin host)
       // but keep their stock list, preferences and demo role (see upgradeToV11).
+      // Version 12 keeps everything and gains the Handover Form list (see upgradeToV13).
       // Older versions restore the seed.
-      migrate: (persisted, version) =>
-        (version >= 8 && version <= 11 && persisted ? upgradeToV11(persisted as AppState, version, initialState()) : initialState()) as unknown as Store,
+      migrate: (persisted, version) => {
+        if (!persisted || version < 8 || version > 12) return initialState() as unknown as Store;
+        const s = version <= 11 ? upgradeToV11(persisted as AppState, version, initialState()) : (persisted as AppState);
+        return upgradeToV13(s) as unknown as Store;
+      },
       onRehydrateStorage: () => (_state, error) => {
         if (error) console.warn("CabinSafe: stored demo data could not be read; using seeded data.", error);
       },

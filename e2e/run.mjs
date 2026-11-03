@@ -355,7 +355,7 @@ await step("Guided demo: Experience CabinSafe runs end-to-end", async () => {
 });
 
 await step("15. Mobile layout: no horizontal overflow on any screen", async () => {
-  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/cabin?view=inventory", "/intel", "/copilot", "/preferences", "/more", "/passengers", "/passengers/pax-michael", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
+  for (const p of ["/", "/preboard", "/flights", "/flights/flt-csi101", "/flights/flt-csi101?tab=checklist", "/flights/flt-csi101?tab=manifest", "/flights/flt-csi101?tab=crew", "/cabin", "/cabin?view=inventory", "/intel", "/copilot", "/preferences", "/more", "/passengers", "/passengers/pax-michael", "/crew", "/handovers", "/handovers/hnd-001", "/audit", "/documents", "/documents/guide/service-standards", "/documents/guide/safety-guide", "/documents/handover", "/documents/handover/hof-sample-csi100", "/documents/CSI-CAT-003", "/more/discrepancies", "/about", "/flights/new"]) {
     await go(p);
     await noHorizontalOverflow(p);
   }

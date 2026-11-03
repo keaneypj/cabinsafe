@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { DOCUMENTS } from "@/data/documents";
-import { LIBRARY, LIBRARY_CATEGORIES } from "@/data/library";
+import { GUIDES, MOCK_STAMP } from "@/data/guides";
+import { createHandoverForms } from "@/data/handoverForms";
+import { LIBRARY_GUIDES } from "@/data/library";
+import { TABLE_SETTINGS } from "@/data/tableSettings";
 import { createPreferences } from "@/data/preferences";
 import { createSeed, FEATURED_FLIGHT_ID } from "@/data/seed";
 import { checklistTaskId } from "@/domain/checklists";
 import { validatePersonName, validatePreferenceText } from "@/domain/preferences";
 import type { InventoryItem, Task } from "@/domain/types";
-import { upgradeToV10, upgradeToV11 } from "./migrate";
+import { upgradeToV10, upgradeToV11, upgradeToV13 } from "./migrate";
 
 const NOW = Date.UTC(2026, 10, 2, 12, 0);
 
@@ -98,10 +101,41 @@ describe("preferences", () => {
 });
 
 describe("documents", () => {
-  it("files every built-in document link under one of the three categories", () => {
-    expect(LIBRARY_CATEGORIES.map((c) => c.title)).toEqual(["Training Manuals", "Safety Manuals", "Handover Documents"]);
-    const codes = Object.values(LIBRARY).flat().flatMap((d) => (d.code ? [d.code] : []));
-    for (const c of codes) expect(DOCUMENTS.some((d) => d.code === c)).toBe(true);
-    expect(Object.values(LIBRARY).every((list) => list.length > 0)).toBe(true);
+  it("lists the four mock guides", () => {
+    expect(LIBRARY_GUIDES.map((d) => d.title)).toEqual(["G700 Cabin Familiarization", "Galley Guide", "Service Standards", "Safety Guide"]);
+    expect(MOCK_STAMP).toBe("MOCK DOCUMENT - For Demonstration Only");
+  });
+
+  it("gives every guide unique section and heading ids, so the contents links land in one place", () => {
+    for (const g of GUIDES) {
+      const ids = g.sections.flatMap((s) => [s.id, ...s.blocks.flatMap((b) => (b.type === "h3" ? [b.id] : []))]);
+      expect(new Set(ids).size, g.slug).toBe(ids.length);
+      expect(ids).not.toContain("contents");
+    }
+  });
+
+  it("draws a table setting for each meal type and each cuisine", () => {
+    const service = GUIDES.find((g) => g.slug === "service-standards")!;
+    const drawn = service.sections.flatMap((s) => s.blocks.flatMap((b) => (b.type === "setting" ? [b.id] : [])));
+    expect(drawn.sort()).toEqual(Object.keys(TABLE_SETTINGS).sort());
+    for (const s of Object.values(TABLE_SETTINGS)) for (const p of s.pieces) expect(p.x >= 0 && p.x <= 320 && p.y >= 0 && p.y <= 196, `${s.title}: ${p.label}`).toBe(true);
+  });
+
+  it("puts all the safety content in the one Safety Guide", () => {
+    const safety = GUIDES.find((g) => g.slug === "safety-guide")!;
+    expect(safety.sections.map((s) => s.title)).toEqual(expect.arrayContaining(["Emergency Equipment and Locations", "Oxygen", "Fire Extinguishers", "First Aid and AED", "Evacuation and Exits", "Turbulence Procedures", "Medical Situations"]));
+    // The older documents stay available for the Copilot.
+    expect(DOCUMENTS.some((d) => d.code === "CSI-MED-002")).toBe(true);
+  });
+});
+
+describe("upgrading saved demo data to version 13", () => {
+  it("keeps saved data and adds the sample handover", () => {
+    const saved = { currentUserId: "crew-x", inventory: [], preferences: [] } as { currentUserId: string; inventory: never[]; preferences: never[]; handoverForms?: ReturnType<typeof createHandoverForms> };
+    const up = upgradeToV13(saved);
+    expect(up.currentUserId).toBe("crew-x");
+    expect(up.handoverForms.map((f) => f.id)).toEqual(["hof-sample-csi100"]);
+    const mine = [{ ...createHandoverForms()[0], id: "hof-mine", sample: false }];
+    expect(upgradeToV13({ ...saved, handoverForms: mine }).handoverForms).toBe(mine);
   });
 });
